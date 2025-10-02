@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafka Multi-Region Failover Simulation (Custom Builder)</title>
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Prefer Google Sans Text if available; fall back to Plus Jakarta Sans/Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Google Sans Text', 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
+            background-color: #f6f7fb; /* soft light */
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #111827; /* gray-900 */
+        }
+        .card {
+            background: #ffffff;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            transition: box-shadow 0.25s ease, transform 0.25s ease;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        /* Status Colors - minimal */
+        .up { background-color: #10b981; }
+        .down { background-color: #ef4444; }
+        .partial { background-color: #f59e0b; }
+        .unavailable { background-color: #9ca3af; }
+        .quorum-maintained { color: #065f46; font-weight: 600; }
+        .quorum-lost { color: #b91c1c; font-weight: 600; }
+
+        /* Custom Clickable Box Styling - Minimal */
+        .status-box-toggle {
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 600;
+            transition: box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+            border: 1px solid #e5e7eb;
+            min-width: 70px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+        }
+        .status-box-toggle.up-state {
+            background: #ecfdf5;
+            color: #065f46;
+            border-color: #d1fae5;
+        }
+        .status-box-toggle.down-state {
+            background: #fef2f2;
+            color: #7f1d1d;
+            border-color: #fee2e2;
+        }
+
+        /* Fixed height for the log container with scroll - Minimal */
+        #sequence_log_container {
+            max-height: 320px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #f9fafb;
+        }
+        /* Fixed height for partition status container */
+        #partition_status {
+            min-height: 140px;
+        }
+        .input-group {
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+        }
+        /* New Grouping Styles - Minimal */
+        .component-group-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #ffffff;
+            padding: 1.25rem;
+            height: 100%;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+            transition: box-shadow 0.25s ease, transform 0.25s ease;
+        }
+        .component-group-container:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10);
+        }
+        /* Tighter grid for controls */
+        .control-grid-1 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 8px;
+        }
+        .control-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 8px;
+        }
+        /* Minimal Buttons */
+        .btn {
+            background-color: #1f2937; /* gray-800 */
+            color: #ffffff;
+            border: 1px solid #1f2937;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 6px 20px rgba(17, 24, 39, 0.12);
+        }
+        .btn:hover { background-color: #111827; transform: translateY(-1px); }
+        .btn-danger { background-color: #dc2626; border-color: #dc2626; }
+        .btn-danger:hover { background-color: #b91c1c; }
+        .btn-success { background-color: #2563eb; border-color: #2563eb; }
+        .btn-success:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body class="p-4 sm:p-6 lg:p-10">
+
+    <div class="max-w-full mx-auto rounded-3xl card p-8 sm:p-10 lg:p-12">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2 text-center tracking-tight">Kafka Multi-Region Failover Simulation</h1>
+        <p class="text-gray-500 mb-8 text-center text-sm leading-6">Architecture: Confluent Kafka Single Cluster on 2 separate OCP Sites (DC1/DC2) with External KRaft Quorum Controller (Site 3)</p>
+
+        <!-- MAIN TWO-COLUMN CONTAINER -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+
+            <!-- LEFT COLUMN: CONTROLS & STATUS (COL-SPAN-5) -->
+            <div class="lg:col-span-5 space-y-6">
+                
+                <!-- LAYER 1: STATUS OVERVIEW (Horizontal Cards) -->
+                <div class="space-y-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">Confluent Cluster Status Overview</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        
+                        <!-- DC1 Panel -->
+                        <div id="dc1_panel" class="p-6 rounded-2xl card border-t-4 border-blue-600">
+                            <h3 class="text-base font-bold text-blue-700 mb-2">DC1 Status</h3>
+                            <div id="dc1_components_status" class="space-y-2 text-sm">
+                                <p class="text-gray-800 font-medium">Broker: <span id="dc1_broker_status" class="up text-green-600 font-extrabold">UP</span></p>
+                                <p class="text-gray-800 font-medium">KRaft Ctrls: <span id="dc1_kraft_status" class="up text-green-600 font-extrabold">UP</span></p>
+                                <p class="text-gray-800 font-medium">Connect/SR: <span id="dc1_service_status" class="up text-green-600 font-extrabold">UP</span></p>
+                            </div>
+                            <p class="mt-3 text-xs font-semibold text-blue-800 border-t pt-2">Ingress VIP: <span id="dc1_ingress_status_text">UP</span></p>
+                        </div>
+                        
+                        <!-- Site 3: Quorum Controller -->
+                        <div id="site3_panel" class="p-6 rounded-2xl card border-t-4 border-gray-500">
+                            <h3 class="text-base font-bold text-gray-700 mb-2">Site 3 Quorum</h3>
+                            <div class="flex items-center space-x-3 text-sm mt-2">
+                                <span id="quorum_status_dot" class="status-dot up"></span>
+                                <span id="quorum_status_text" class="font-bold text-gray-800">C5 | UP</span>
+                            </div>
+                            <p class="mt-3 text-xs text-gray-600 border-t pt-2">Quorum: <span id="quorum_consensus" class="quorum-maintained text-base">MAINTAINED</span></p>
+                        </div>
+
+                        <!-- DC2 Panel -->
+                        <div id="dc2_panel" class="p-6 rounded-2xl card border-t-4 border-green-600">
+                            <h3 class="text-base font-bold text-green-700 mb-2">DC2 Status</h3>
+                            <div id="dc2_components_status" class="space-y-2 text-sm">
+                                <p class="text-gray-800 font-medium">Broker: <span id="dc2_broker_status" class="up text-green-600 font-extrabold">UP</span></p>
+                                <p class="text-gray-800 font-medium">KRaft Ctrls: <span id="dc2_kraft_status" class="up text-green-600 font-extrabold">UP</span></p>
+                                <p class="text-gray-800 font-medium">Connect/SR: <span id="dc2_service_status" class="up text-green-600 font-extrabold">UP</span></p>
+                            </div>
+                            <p class="mt-3 text-xs font-semibold text-green-800 border-t pt-2">Ingress VIP: <span id="dc2_ingress_status_text">UP</span></p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- LAYER 2: CUSTOM SCENARIO BUILDER (Site-centric Layout) -->
+                <div class="bg-white rounded-2xl border border-gray-200 space-y-4 shadow-sm p-6">
+                    <h2 class="text-xl font-bold text-gray-900">Custom Scenario Builder</h2>
+                    <p class="text-sm text-gray-600">Click components to toggle status (UP / DOWN) and define failure scenario.</p>
+                    
+                    <!-- Configuration Settings (Durability Settings) - THIS SECTION IS REMOVED -->
+                    
+                    <!-- New 3-Column Site-Centric Control Grid -->
+                    <div id="control_groups" class="grid grid-cols-3 gap-4">
+                        
+                        <!-- DC1 Controls -->
+                        <div id="dc1_controls" class="component-group-container border-t-4 border-blue-600 space-y-3">
+                            <h3 class="font-extrabold text-sm text-blue-700 border-b pb-1">DC1 Components</h3>
+                            
+                            <!-- DC1 Controllers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">KRaft Ctrls (C1, C2)</p>
+                                <div id="dc1_controllers_container" class="control-grid-1"></div>
+                            </div>
+                            
+                            <!-- DC1 Brokers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">Kafka Brokers (A1, A2, A3)</p>
+                                <div id="dc1_brokers_container" class="control-grid-1"></div>
+                            </div>
+
+                            <!-- DC1 Services -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">Services/Ingress</p>
+                                <div id="dc1_services_container" class="control-grid-1"></div>
+                            </div>
+                            <!-- New Button for DC1 All Down -->
+                            <button onclick="toggleSiteStatus('DC1', 'DOWN')" class="btn btn-danger w-full mt-2">
+                                DC1 Down All
+                            </button>
+                        </div>
+
+                        <!-- Site 3 Controls -->
+                        <div id="site3_controls" class="component-group-container border-t-4 border-gray-500 space-y-3">
+                            <h3 class="font-extrabold text-sm text-gray-700 border-b pb-1">Site 3 Components</h3>
+                            
+                            <!-- Site 3 Controllers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">KRaft Controller (C5)</p>
+                                <div id="site3_controllers_container" class="control-grid-1"></div>
+                            </div>
+                        </div>
+
+                        <!-- DC2 Controls -->
+                        <div id="dc2_controls" class="component-group-container border-t-4 border-green-600 space-y-3">
+                            <h3 class="font-extrabold text-sm text-green-700 border-b pb-1">DC2 Components</h3>
+
+                            <!-- DC2 Controllers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">KRaft Ctrls (C3, C4)</p>
+                                <div id="dc2_controllers_container" class="control-grid-1"></div>
+                            </div>
+                            
+                            <!-- DC2 Brokers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">Kafka Brokers (B1, B2, B3)</p>
+                                <div id="dc2_brokers_container" class="control-grid-1"></div>
+                            </div>
+
+                            <!-- DC2 Services -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">Services/Ingress</p>
+                                <div id="dc2_services_container" class="control-grid-1"></div>
+                            </div>
+                            <!-- New Button for DC2 All Down -->
+                            <button onclick="toggleSiteStatus('DC2', 'DOWN')" class="btn btn-danger w-full mt-2">
+                                DC2 Down All
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button onclick="runScenario(5)" class="btn btn-success w-full mt-4">
+                        Restore All UP
+                    </button>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: RESULTS & LOG (COL-SPAN-7) -->
+            <div class="lg:col-span-7 space-y-6 pt-4 lg:pt-0">
+                <h2 class="text-xl font-bold text-gray-900 mb-2">Results and Failover Flow</h2>
+
+                <!-- Partition Configuration (RPO=0 Setup) - MOVED HERE AS REQUESTED -->
+                <div class="input-group mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Partition Configuration (RPO=0 Setup)</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="flex items-center justify-start space-x-2">
+                            <label class="font-medium text-gray-600">Replication Factor (RF):</label>
+                            <span class="font-extrabold text-gray-800">6 (All Brokers)</span>
+                        </div>
+                        <div class="flex items-center justify-start space-x-2">
+                            <label class="font-medium text-gray-600">Min.ISR:</label>
+                            <span id="display_min_isr" class="font-extrabold text-gray-800">3</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">Availability requires: ISR Count $\geq$ Min.ISR. With RF=6 and Min.ISR=3, the system can tolerate 3 Broker failures without data loss.</p>
+                </div>
+
+
+                <!-- Partition Status -->
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Partition Leader/Follower Status</h3>
+                    <div id="partition_status" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Client & Service Impact -->
+                <div class="mb-4 pt-3 border-t border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Client & Service Impact</h3>
+                    <div id="client_impact" class="space-y-3 text-sm text-gray-800">
+                        <p id="producer_impact"></p>
+                        <p id="consumer_impact"></p>
+                        <p id="service_impact"></p>
+                    </div>
+                </div>
+                
+                <!-- Failover Sequence Log (Fixed Height) -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Failover Sequence Log</h3>
+                    <div id="sequence_log_container" class="p-3">
+                        <ol id="sequence_log" class="list-decimal list-inside space-y-1 text-xs text-gray-700">
+                            <li class="text-gray-500">Use the Custom Scenario Builder above to start a simulation.</li>
+                        </ol>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Global variables for Firebase context (required by instructions, though not used for this local simulation)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- Configuration Constants (Hardcoded after removal of UI inputs) ---
+        const MIN_ISR = 3;
+        const UNCLEAN_ENABLED = false; // Safe/Disabled by default
+        const RF_VALUE = 6;
+
+
+        // --- Data Model & Initial State (UPDATED FOR RF=6) ---
+        let clusterState = {
+            // KRaft Controllers (5 nodes total, Quorum required: 3)
+            kraft_controllers: {
+                C1: { site: 'DC1', status: 'UP', desc: 'Controller C1 (DC1)' }, 
+                C2: { site: 'DC1', status: 'UP', desc: 'Controller C2 (DC1)' },
+                C3: { site: 'DC2', status: 'UP', desc: 'Controller C3 (DC2)' },
+                C4: { site: 'DC2', status: 'UP', desc: 'Controller C4 (DC2)' },
+                C5: { site: 'Site3', status: 'UP', desc: 'Controller C5 (Site 3 VM)' }, // External VM
+            },
+            // Brokers (A1, A2, A3 in DC1; B1, B2, B3 in DC2)
+            brokers: {
+                A1: { site: 'DC1', status: 'UP', desc: 'Broker A1 (P0)' }, 
+                A2: { site: 'DC1', status: 'UP', desc: 'Broker A2 (P2)' },
+                A3: { site: 'DC1', status: 'UP', desc: 'Broker A3 (Follower)' },
+                B1: { site: 'DC2', status: 'UP', desc: 'Broker B1 (P1)' },
+                B2: { site: 'DC2', status: 'UP', desc: 'Broker B2 (Follower)' },
+                B3: { site: 'DC2', status: 'UP', desc: 'Broker B3 (Follower)' },
+            },
+            services: {
+                DC1_CONNECT: { site: 'DC1', status: 'UP', desc: 'Connect' },
+                DC1_SR: { site: 'DC1', status: 'UP', desc: 'Schema Reg' },
+                DC1_INGRESS: { site: 'DC1', status: 'UP', desc: 'F5 VIP/Ingress' }, // New Ingress
+                
+                DC2_CONNECT: { site: 'DC2', status: 'UP', desc: 'Connect' },
+                DC2_SR: { site: 'DC2', status: 'UP', desc: 'Schema Reg' },
+                DC2_INGRESS: { site: 'DC2', status: 'UP', desc: 'F5 VIP/Ingress' }, // New Ingress
+            },
+            // Topic: SalesData (3 Partitions, Replication Factor 6, spread across all 6 brokers)
+            partitions: {
+                P0: { leader: 'A1', followers: ['A2', 'A3', 'B1', 'B2', 'B3'] }, // RF=6
+                P1: { leader: 'B1', followers: ['B2', 'B3', 'A1', 'A2', 'A3'] }, // RF=6
+                P2: { leader: 'A2', followers: ['A1', 'A3', 'B1', 'B2', 'B3'] }, // RF=6
+            },
+            // Configuration Parameters (kept for reference, but UI removed)
+            config: {
+                RF: RF_VALUE, 
+                minISR: MIN_ISR 
+            }
+        };
+
+        const QUORUM_SIZE = 5;
+        const QUORUM_REQUIRED = 3;
+
+        // Deep copy of the initial state for clean resets
+        const initialState = JSON.parse(JSON.stringify(clusterState));
+
+        // --- Utility Functions ---
+
+        /**
+         * Counts the number of UP replicas for a given partition.
+         */
+        function getISRCount(partitionId) {
+            const partition = clusterState.partitions[partitionId];
+            const allReplicas = [partition.leader, ...partition.followers];
+            let isrCount = 0;
+            
+            // NOTE: We check the broker's current status in clusterState, which reflects actual availability
+            for (const brokerId of allReplicas) {
+                if (clusterState.brokers[brokerId] && clusterState.brokers[brokerId].status === 'UP') {
+                    isrCount++;
+                }
+            }
+            return isrCount;
+        }
+
+        /**
+         * Counts the number of UP KRaft controllers and determines quorum status.
+         */
+        function checkQuorum() {
+            const upControllers = Object.values(clusterState.kraft_controllers).filter(c => c.status === 'UP').length;
+            const quorumMaintained = upControllers >= QUORUM_REQUIRED;
+            return { upControllers, quorumMaintained };
+        }
+
+        /**
+         * Finds a healthy follower for a given partition that can be elected as the new leader.
+         */
+        function findNewLeader(partitionId) {
+            const partition = initialState.partitions[partitionId]; // Use initial followers list
+            const currentLeader = clusterState.partitions[partitionId].leader;
+            const allReplicas = [currentLeader, ...partition.followers];
+            
+            // Prioritize a replica that is UP and not the current leader (must be ISR/UP to be considered)
+            for (const brokerId of allReplicas) {
+                // Check if the broker is internally UP
+                if (brokerId !== currentLeader && clusterState.brokers[brokerId] && clusterState.brokers[brokerId].status === 'UP') {
+                    return brokerId;
+                }
+            }
+            return null; 
+        }
+        
+        /**
+         * Helper to get Tailwind classes based on status string.
+         */
+        function getStatusClasses(status) {
+            switch (status) {
+                case 'UP':
+                    return 'up text-green-600 font-extrabold';
+                case 'DOWN':
+                    return 'down text-red-600 font-extrabold';
+                case 'UNAVAILABLE':
+                    return 'unavailable text-gray-600 font-extrabold';
+                case 'PARTIAL':
+                    return 'partial text-yellow-600 font-extrabold';
+                default:
+                    return 'text-gray-500';
+            }
+        }
+        
+        /**
+         * Generates the HTML for a compact, clickable status box.
+         */
+        function generateControlHtml(id, desc, isUp, type) {
+            const elementId = `${type}_${id}`;
+            const labelDesc = desc; // Use full description now
+            
+            // Determine initial state classes
+            const statusClass = isUp ? 'up-state' : 'down-state';
+            const statusText = isUp ? 'UP' : 'DOWN';
+            
+            return `
+                <div id="${elementId}" onclick="toggleStatus('${type}', '${id}', this)" 
+                     class="status-box-toggle ${statusClass}">
+                    <span class="truncate block">${labelDesc}</span>
+                    <span class="status-text font-extrabold">${statusText}</span>
+                </div>
+            `;
+        }
+
+        /**
+         * Toggles the status of a component when clicked and runs the simulation.
+         */
+        window.toggleStatus = function(type, id, element) {
+            let component;
+            
+            // Determine which object to update in clusterState
+            if (type === 'ctrl') {
+                component = clusterState.kraft_controllers[id];
+            } else if (type === 'brkr') {
+                component = clusterState.brokers[id];
+            } else if (type === 'svc') {
+                component = clusterState.services[id];
+            }
+
+            if (component) {
+                // Toggle the status
+                const newStatus = component.status === 'UP' ? 'DOWN' : 'UP';
+                component.status = newStatus;
+
+                // Update the visual representation
+                element.classList.toggle('up-state', newStatus === 'UP');
+                element.classList.toggle('down-state', newStatus === 'DOWN');
+                element.querySelector('.status-text').textContent = newStatus;
+                
+                // Rerun simulation to see immediate effects in overview/results
+                setTimeout(runSimulation, 0);
+            }
+        }
+        
+        /**
+         * Toggles the status of ALL components in a given site (DC1 or DC2).
+         */
+        window.toggleSiteStatus = function(site, targetStatus) {
+            // 1. Update the state model
+            let changeMade = false;
+            
+            // Controllers
+            Object.keys(clusterState.kraft_controllers).forEach(id => {
+                if (clusterState.kraft_controllers[id].site === site && clusterState.kraft_controllers[id].status !== targetStatus) {
+                    clusterState.kraft_controllers[id].status = targetStatus;
+                    changeMade = true;
+                }
+            });
+            // Brokers
+            Object.keys(clusterState.brokers).forEach(id => {
+                if (clusterState.brokers[id].site === site && clusterState.brokers[id].status !== targetStatus) {
+                    clusterState.brokers[id].status = targetStatus;
+                    changeMade = true;
+                }
+            });
+            // Services (including Ingress)
+            Object.keys(clusterState.services).forEach(id => {
+                if (clusterState.services[id].site === site && clusterState.services[id].status !== targetStatus) {
+                    clusterState.services[id].status = targetStatus;
+                    changeMade = true;
+                }
+            });
+
+            // 2. Update the UI elements and re-run simulation if changes were made
+            if (changeMade) {
+                const prefix = site === 'DC1' ? 'A' : 'B';
+                
+                // Update Controller Toggles
+                document.querySelectorAll(`#${site.toLowerCase()}_controllers_container .status-box-toggle`).forEach(element => {
+                    const status = clusterState.kraft_controllers[element.id.slice(5)].status;
+                    element.classList.toggle('up-state', status === 'UP');
+                    element.classList.toggle('down-state', status === 'DOWN');
+                    element.querySelector('.status-text').textContent = status;
+                });
+                
+                // Update Broker Toggles
+                document.querySelectorAll(`#${site.toLowerCase()}_brokers_container .status-box-toggle`).forEach(element => {
+                    const status = clusterState.brokers[element.id.slice(5)].status;
+                    element.classList.toggle('up-state', status === 'UP');
+                    element.classList.toggle('down-state', status === 'DOWN');
+                    element.querySelector('.status-text').textContent = status;
+                });
+
+                // Update Service Toggles
+                document.querySelectorAll(`#${site.toLowerCase()}_services_container .status-box-toggle`).forEach(element => {
+                    const status = clusterState.services[element.id.slice(4)].status;
+                    element.classList.toggle('up-state', status === 'UP');
+                    element.classList.toggle('down-state', status === 'DOWN');
+                    element.querySelector('.status-text').textContent = status;
+                });
+
+                setTimeout(runSimulation, 0);
+            }
+        }
+        
+        /**
+         * Compares current state to initial state and generates a summary of failed components.
+         */
+        function getFailedComponentsSummary() {
+            let summary = ["--- 🛑 Initial Failure Event Summary 🛑 ---"];
+            let failedFound = false;
+            
+            // 1. Controllers
+            Object.keys(initialState.kraft_controllers).forEach(id => {
+                if (clusterState.kraft_controllers[id].status !== initialState.kraft_controllers[id].status) { // Check against initial state
+                    if (clusterState.kraft_controllers[id].status === 'DOWN') {
+                        summary.push(`- KRaft Controller ${id} (${clusterState.kraft_controllers[id].site}) was manually stopped.`);
+                        failedFound = true;
+                    }
+                }
+            });
+
+            // 2. Brokers
+             Object.keys(initialState.brokers).forEach(id => {
+                if (clusterState.brokers[id].status !== initialState.brokers[id].status) {
+                    if (clusterState.brokers[id].status === 'DOWN') {
+                        summary.push(`- Kafka Broker ${id} (${clusterState.brokers[id].site}) was manually stopped.`);
+                        failedFound = true;
+                    }
+                }
+            });
+            
+            // 3. Services (including Ingress)
+            Object.keys(initialState.services).forEach(id => {
+                if (clusterState.services[id].status !== initialState.services[id].status) {
+                    if (clusterState.services[id].status === 'DOWN') {
+                        summary.push(`- Service ${initialState.services[id].desc} (${initialState.services[id].site}) was manually stopped.`);
+                        failedFound = true;
+                    }
+                }
+            });
+
+            if (!failedFound) {
+                summary.push("- No new components were manually stopped since last run. Running full check.");
+            }
+            
+            return summary;
+        }
+
+        /**
+         * Renders the component controls grouped by site.
+         */
+        function buildCustomUI() {
+            // Get containers for each site/component type
+            const dc1_ctrl = document.getElementById('dc1_controllers_container');
+            const dc1_brkr = document.getElementById('dc1_brokers_container');
+            const dc1_svc = document.getElementById('dc1_services_container');
+
+            const site3_ctrl = document.getElementById('site3_controllers_container');
+
+            const dc2_ctrl = document.getElementById('dc2_controllers_container');
+            const dc2_brkr = document.getElementById('dc2_brokers_container');
+            const dc2_svc = document.getElementById('dc2_services_container');
+            
+            dc1_ctrl.innerHTML = dc1_brkr.innerHTML = dc1_svc.innerHTML = '';
+            site3_ctrl.innerHTML = '';
+            dc2_ctrl.innerHTML = dc2_brkr.innerHTML = dc2_svc.innerHTML = '';
+
+
+            // Render DC1 Components
+            Object.keys(initialState.kraft_controllers).filter(id => initialState.kraft_controllers[id].site === 'DC1').forEach(id => {
+                dc1_ctrl.innerHTML += generateControlHtml(id, `C${id.slice(1)}`, initialState.kraft_controllers[id].status === 'UP', 'ctrl');
+            });
+            Object.keys(initialState.brokers).filter(id => initialState.brokers[id].site === 'DC1').forEach(id => {
+                dc1_brkr.innerHTML += generateControlHtml(id, id, initialState.brokers[id].status === 'UP', 'brkr');
+            });
+            Object.keys(initialState.services).filter(id => initialState.services[id].site === 'DC1').forEach(id => {
+                dc1_svc.innerHTML += generateControlHtml(id, initialState.services[id].desc, initialState.services[id].status === 'UP', 'svc');
+            });
+
+            // Render Site 3 Components
+            Object.keys(initialState.kraft_controllers).filter(id => initialState.kraft_controllers[id].site === 'Site3').forEach(id => {
+                site3_ctrl.innerHTML += generateControlHtml(id, `C${id.slice(1)} (VM)`, initialState.kraft_controllers[id].status === 'UP', 'ctrl');
+            });
+
+            // Render DC2 Components
+            Object.keys(initialState.kraft_controllers).filter(id => initialState.kraft_controllers[id].site === 'DC2').forEach(id => {
+                dc2_ctrl.innerHTML += generateControlHtml(id, `C${id.slice(1)}`, initialState.kraft_controllers[id].status === 'UP', 'ctrl');
+            });
+            Object.keys(initialState.brokers).filter(id => initialState.brokers[id].site === 'DC2').forEach(id => {
+                dc2_brkr.innerHTML += generateControlHtml(id, id, initialState.brokers[id].status === 'UP', 'brkr');
+            });
+            Object.keys(initialState.services).filter(id => initialState.services[id].site === 'DC2').forEach(id => {
+                dc2_svc.innerHTML += generateControlHtml(id, initialState.services[id].desc, initialState.services[id].status === 'UP', 'svc');
+            });
+            
+            // NOTE: Min.ISR input removed from UI
+        }
+
+        /**
+         * Renders the overall cluster health status.
+         */
+        function renderClusterHealth() {
+            // Quorum Status
+            const { upControllers, quorumMaintained } = checkQuorum();
+            const quorumDot = document.getElementById('quorum_status_dot');
+            const quorumText = document.getElementById('quorum_status_text');
+            const quorumConsensus = document.getElementById('quorum_consensus');
+            
+            const c5Status = clusterState.kraft_controllers.C5.status;
+            
+            if (quorumMaintained) {
+                quorumDot.className = 'status-dot up';
+                quorumConsensus.className = 'quorum-maintained';
+                quorumConsensus.textContent = `MAINTAINED (${upControllers}/${QUORUM_REQUIRED})`;
+            } else {
+                quorumDot.className = 'status-dot down';
+                quorumConsensus.className = 'quorum-lost';
+                quorumConsensus.textContent = `LOST (${upControllers}/${QUORUM_REQUIRED}) - UNAVAILABLE!`;
+            }
+            quorumText.innerHTML = `Controller (C5) | ${c5Status}`;
+            
+            document.getElementById('site3_panel').classList.toggle('opacity-50', c5Status === 'DOWN');
+
+
+            // DC1 & DC2 Health
+            ['DC1', 'DC2'].forEach(site => {
+                const siteLower = site.toLowerCase();
+                const brokers = Object.keys(clusterState.brokers).filter(b => clusterState.brokers[b].site === site);
+                const upBrokers = brokers.filter(b => clusterState.brokers[b].status === 'UP').length;
+                const totalBrokers = brokers.length;
+
+                const brokerStatusElem = document.getElementById(`${siteLower}_broker_status`);
+                const kraftStatusElem = document.getElementById(`${siteLower}_kraft_status`);
+                const serviceStatusElem = document.getElementById(`${siteLower}_service_status`);
+                const ingressStatusTextElem = document.getElementById(`${siteLower}_ingress_status_text`);
+                
+                const ingressStatus = clusterState.services[`${site}_INGRESS`].status;
+
+                // Broker Status
+                let brokerStatus = 'UP';
+                if (upBrokers === 0) brokerStatus = 'DOWN';
+                else if (upBrokers < totalBrokers) brokerStatus = 'PARTIAL';
+                
+                // KRaft Status 
+                const siteControllers = Object.values(clusterState.kraft_controllers).filter(c => c.site === site);
+                const upKraft = siteControllers.filter(c => c.status === 'UP').length;
+                let kraftStatus = 'UP';
+                if (upKraft === 0) kraftStatus = 'DOWN';
+                else if (upKraft < siteControllers.length) kraftStatus = 'PARTIAL';
+
+                // Service Status (Connect/SR only)
+                const connectStatus = clusterState.services[`${site}_CONNECT`].status;
+                const srStatus = clusterState.services[`${site}_SR`].status;
+                let serviceStatus = connectStatus === 'UP' && srStatus === 'UP' ? 'UP' : 'DOWN';
+                
+                
+                // CRITICAL FIX: Ingress Down means Layer 1 components are UNREACHABLE/UNAVAILABLE
+                const panel = document.getElementById(`${siteLower}_panel`);
+                const isSiteUnreachable = ingressStatus === 'DOWN';
+                
+                if (isSiteUnreachable) {
+                    // OVERRIDE visual status to UNAVAILABLE
+                    brokerStatus = 'UNAVAILABLE';
+                    kraftStatus = 'UNAVAILABLE';
+                    serviceStatus = 'UNAVAILABLE';
+                }
+
+                brokerStatusElem.className = getStatusClasses(brokerStatus);
+                brokerStatusElem.textContent = brokerStatus;
+                
+                // Broker display list update
+                const brokerList = site === 'DC1' ? '(A1, A2, A3)' : '(B1, B2, B3)';
+                brokerStatusElem.previousSibling.textContent = `Broker ${brokerList}: `;
+
+
+                kraftStatusElem.className = getStatusClasses(kraftStatus);
+                kraftStatusElem.textContent = kraftStatus;
+
+                serviceStatusElem.className = getStatusClasses(serviceStatus);
+                serviceStatusElem.textContent = serviceStatus;
+
+                // Ingress Status Text Update (Layer 1)
+                ingressStatusTextElem.textContent = ingressStatus;
+                ingressStatusTextElem.className = ingressStatus === 'UP' ? 'text-green-600 font-extrabold' : 'text-red-600 font-extrabold';
+
+
+                // Panel Highlighting: Dim if unreachable from outside
+                panel.classList.toggle('opacity-50', isSiteUnreachable);
+            });
+            
+            // Update Min.ISR display in the results column
+            document.getElementById('display_min_isr').textContent = MIN_ISR;
+        }
+
+        /**
+         * Renders the partition leader/follower status.
+         */
+        function renderPartitionStatus() {
+            const container = document.getElementById('partition_status');
+            container.innerHTML = ''; // Clear previous state
+            const minISR = MIN_ISR; // Use constant
+            const uncleanEnabled = UNCLEAN_ENABLED; // Use constant
+            const { quorumMaintained } = checkQuorum();
+
+
+            for (const [pId, pData] of Object.entries(clusterState.partitions)) {
+                // Find the initial leader from the start state
+                const initialLeader = initialState.partitions[pId].leader;
+                const currentLeader = clusterState.partitions[pId].leader; // Current leader after election logic has run
+                const currentLeaderSite = clusterState.brokers[currentLeader].site;
+
+                // 1. Calculate ISR Count based on current state
+                const isrCount = getISRCount(pId);
+                const isAvailable = isrCount >= minISR;
+
+                let leaderText;
+                let leaderColorClass;
+                let leaderBgClass;
+
+                // Determine if the initial leader is internally down
+                const initialLeaderIsInternallyDown = clusterState.brokers[initialLeader].status === 'DOWN';
+                
+                // Check if a leader change occurred
+                const leaderChanged = currentLeader !== initialLeader;
+
+
+                if (!isAvailable) {
+                    // --- OFFLINE (RED) ---
+                    const failedLeaderText = initialLeaderIsInternallyDown ? `<span class="font-extrabold text-red-700">${initialLeader} (Failed)</span>` : initialLeader;
+                    leaderText = `Leader Failed: ${failedLeaderText}. ISR Count (${isrCount}) &lt; Min.ISR (${minISR}). **OFFLINE**`;
+                    leaderColorClass = 'text-red-800';
+                    leaderBgClass = 'bg-red-100';
+                
+                } else if (!quorumMaintained && initialLeaderIsInternallyDown && !leaderChanged) {
+                    // --- CONTROL PLANE LOST + LEADER FAILED (HARD OFFLINE) ---
+                    leaderText = `Leader Failed: ${initialLeader}. Control Plane LOST (no election possible). **OFFLINE**`;
+                    leaderColorClass = 'text-red-800';
+                    leaderBgClass = 'bg-red-100';
+
+                } else if (!quorumMaintained) {
+                    // --- CONTROL PLANE LOST (AMBER) ---
+                    // Partitions still serve traffic while the current leader is alive; elections/changes are blocked
+                    leaderText = `Serving with Leader: ${currentLeader} (${currentLeaderSite}). Control Plane LOST. Elections/changes blocked. ISR Count: ${isrCount} (Min.ISR: ${minISR})`;
+                    leaderColorClass = 'text-yellow-800';
+                    leaderBgClass = 'bg-yellow-50';
+
+                } else if (leaderChanged) {
+                    // --- FAILOVER SUCCESSFUL (YELLOW with INDIGO/GRAY Text) ---
+                    // Text coloring for emphasis on the change event
+                    const newLeaderText = `<span class="font-extrabold text-indigo-700">${currentLeader}</span>`;
+                    // Check if the initial leader was actually the one that failed (not just a re-election from a non-failed broker)
+                    const failedLeaderText = initialLeaderIsInternallyDown ? `(Old Leader ${initialLeader} <span class="text-gray-700 font-extrabold">Failed</span>)` : '';
+                    
+                    if (uncleanEnabled) {
+                        // ORANGE: Unclean Election Risk
+                        leaderText = `⚠️ ULE Election: New Leader ${newLeaderText} (${currentLeaderSite}). ${failedLeaderText}. **RISKING DATA LOSS**`;
+                        leaderColorClass = 'text-orange-700';
+                        leaderBgClass = 'bg-yellow-200'; // Using yellow to avoid red
+                    } else {
+                         // YELLOW: Clean Election Successful
+                        leaderText = `Leader Changed! New Leader: ${newLeaderText} (${currentLeaderSite}) ${failedLeaderText}`;
+                        leaderColorClass = 'text-yellow-800';
+                        leaderBgClass = 'bg-yellow-100';
+                    }
+                
+                } else if (initialLeaderIsInternallyDown) {
+                    // This case should be rare if logic is perfect, but kept for safety.
+                    leaderText = `Leader Failed: ${initialLeader}. Election Failed (No ISR available).`;
+                    leaderColorClass = 'text-red-800';
+                    leaderBgClass = 'bg-red-100';
+
+                } else {
+                    // --- STABLE (GREEN) ---
+                    leaderText = `Leader: ${currentLeader} (${currentLeaderSite}). ISR Count: ${isrCount} (Min.ISR: ${minISR})`;
+                    leaderColorClass = 'text-green-800';
+                    leaderBgClass = 'bg-green-100';
+                }
+
+                const allReplicas = initialState.partitions[pId].leader + ', ' + initialState.partitions[pId].followers.join(', ');
+
+                const card = `
+                    <div class="p-3 rounded-xl shadow-md border ${leaderBgClass} border-gray-200 min-h-[100px]">
+                        <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
+                        <p class="text-xs font-semibold ${leaderColorClass}">${leaderText}</p>
+                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=6): ${allReplicas}</p>
+                    </div>
+                `;
+                container.innerHTML += card;
+            }
+        }
+
+        // --- Core Simulation Logic ---
+
+        function updateStateAfterFailover(summary) {
+            const minISR = MIN_ISR;
+            const uncleanEnabled = UNCLEAN_ENABLED;
+            
+            let newSequence = summary; 
+
+            // Temporary variable to hold the original state of DC2 components before the override for KRaft logic
+            const originalDC2Brokers = {};
+            const originalDC2Controllers = {};
+            
+            // CRITICAL STEP: OCP Ingress Dependency for KRaft (Symmetric DC1/DC2)
+            const dc1IngressDown = clusterState.services.DC1_INGRESS.status === 'DOWN';
+            const dc2IngressDown = clusterState.services.DC2_INGRESS.status === 'DOWN';
+
+            const originalDC1Brokers = {};
+            const originalDC1Controllers = {};
+
+            if (dc1IngressDown) {
+                newSequence.push("--- CRITICAL ADJUSTMENT: DC1 Ingress Dependency ---");
+                newSequence.push(`- Ingress VIP DC1 is DOWN. KRaft assumes DC1 is internally unreachable (VIP SPOF).`);
+
+                ['C1', 'C2'].forEach(id => {
+                    originalDC1Controllers[id] = clusterState.kraft_controllers[id].status;
+                    if (clusterState.kraft_controllers[id].status === 'UP') {
+                        clusterState.kraft_controllers[id].status = 'DOWN';
+                        newSequence.push(`- KRaft Controller ${id} (DC1) is logically marked DOWN for Quorum check.`);
+                    }
+                });
+                ['A1', 'A2', 'A3'].forEach(id => {
+                    originalDC1Brokers[id] = clusterState.brokers[id].status;
+                    if (clusterState.brokers[id].status === 'UP') {
+                        clusterState.brokers[id].status = 'DOWN';
+                        newSequence.push(`- Kafka Broker ${id} (DC1) is logically marked DOWN for Leader Election.`);
+                    }
+                });
+            }
+
+            if (dc2IngressDown) {
+                newSequence.push("--- CRITICAL ADJUSTMENT: DC2 Ingress Dependency ---");
+                newSequence.push(`- Ingress VIP DC2 is DOWN. KRaft assumes DC2 is internally unreachable (VIP SPOF).`);
+                
+                // Force DC2 components to DOWN status for the purpose of KRaft decision-making (Leader Election)
+                ['C3', 'C4'].forEach(id => { 
+                    originalDC2Controllers[id] = clusterState.kraft_controllers[id].status;
+                    if (clusterState.kraft_controllers[id].status === 'UP') {
+                        clusterState.kraft_controllers[id].status = 'DOWN';
+                        newSequence.push(`- KRaft Controller ${id} (DC2) is logically marked DOWN for Quorum check.`);
+                    }
+                });
+                ['B1', 'B2', 'B3'].forEach(id => {
+                    originalDC2Brokers[id] = clusterState.brokers[id].status;
+                    if (clusterState.brokers[id].status === 'UP') {
+                        clusterState.brokers[id].status = 'DOWN';
+                        newSequence.push(`- Kafka Broker ${id} (DC2) is logically marked DOWN for Leader Election.`);
+                    }
+                });
+            }
+
+            // Recalculate Quorum after potential forced failures (if any)
+            const { upControllers, quorumMaintained } = checkQuorum();
+            
+            newSequence.push("--- KRaft Failover Sequence Execution ---");
+            
+            // 1.1 Quorum Check
+            newSequence.push(`1.1. KRaft Check: ${QUORUM_SIZE} Controllers configured. Minimum required for Quorum is ${QUORUM_REQUIRED}. Current UP: ${upControllers}.`);
+
+            if (!quorumMaintained) {
+                newSequence.push("❌ Quorum Lost! (Controllers UP &lt; 3)"); 
+                newSequence.push("🛑 Control Plane Status: Metadata frozen. Leader Elections, Topic/ACL changes are blocked.");
+                newSequence.push("⚠️ Data Plane Status: Existing leaders (if UP) continue serving, but any leader failure will lead to partition unavailability.");
+            } else {
+                newSequence.push("✅ Quorum Maintained! (Control plane is fully operational.)");
+            }
+            
+            newSequence.push(`--- Data Plane Check (RF=6, Min.ISR=${minISR}, ULE=${uncleanEnabled ? 'ON' : 'OFF'}) ---`);
+
+            // Iterate over partitions to check for required leader election
+            for (const [pId, pData] of Object.entries(initialState.partitions)) {
+                const initialLeader = initialState.partitions[pId].leader;
+                
+                // If the initial leader is DOWN, election is triggered (due to manual selection OR Ingress-forced failure)
+                // Use the clusterState *after* the temporary ingress override
+                const isFailoverTriggered = clusterState.brokers[initialLeader].status === 'DOWN'; 
+                
+                let currentISRCount = getISRCount(pId);
+
+                if (isFailoverTriggered) {
+                    newSequence.push(`1. Detected: Partition ${pId} Leader (${initialLeader}) failed/unreachable. ISR Count drops to ${currentISRCount}.`);
+                    
+                    // --- Case 1: Broker Failure and Quorum is UP ---
+                    if (quorumMaintained) {
+                        const newLeaderId = findNewLeader(pId); // Finds next UP broker (ISR candidate)
+                        
+                        if (newLeaderId) {
+                            // CLEAN ELECTION SUCCESSFUL (ULE is irrelevant here, as an ISR candidate was found)
+                             newSequence.push(`2. KRaft Sequence: Controller finds ${newLeaderId} (available ISR replica in DC1) and initiates Leader Election.`);
+                             
+                            // **CRITICAL STATE UPDATE:** Update State
+                            clusterState.partitions[pId].leader = newLeaderId;
+                            const newISRCount = getISRCount(pId); // Recalculate ISR after new leader is chosen
+                            
+                            if (newISRCount >= minISR) {
+                                newSequence.push(`3. Result: Election successful. New Leader ${newLeaderId}. ISR Count (${newISRCount}) $\\geq$ Min.ISR (${minISR}). Partition is **Available** (RPO=0 maintained).`);
+                                newSequence.push(`4. Kafka Clients: Metadata Refresh and redirect to the New Leader.`);
+                            } else {
+                                // Election occurred, but Min.ISR failed immediately after.
+                                newSequence.push(`3. Result: Election successful, but ISR Count (${newISRCount}) &lt; Min.ISR (${minISR}). Partition is now **Offline** (Producer Blocked).`);
+                                newSequence.push(`4. Kafka Clients: Producer/Consumer receive **NotEnoughReplicas** error.`);
+                            }
+                        } else {
+                            // No available ISR found. Check ULE condition.
+                            if (uncleanEnabled) {
+                                // ULE enabled. Select the remaining broker (any UP replica)
+                                const remainingBrokers = Object.keys(clusterState.brokers).filter(b => b !== initialLeader && clusterState.brokers[b].status === 'UP');
+                                if (remainingBrokers.length > 0) {
+                                    // Pick the first remaining UP broker (Unclean Leader)
+                                    const uncleanLeader = remainingBrokers[0]; 
+                                    clusterState.partitions[pId].leader = uncleanLeader;
+                                    const newISRCount = getISRCount(pId);
+                                    
+                                    newSequence.push(`2. KRaft Sequence: No ISR found. ULE is ON. Electing ${uncleanLeader} as Unclean Leader.`);
+                                    newSequence.push(`3. Result: Partition is **Available** (${newISRCount}/${minISR}) but **RISKS DATA LOSS** (Unclean Election).`);
+                                    newSequence.push(`4. Kafka Clients: Metadata Refresh and redirect to the Unclean Leader.`);
+                                } else {
+                                    // ULE enabled but NO broker left.
+                                    newSequence.push(`2. KRaft Sequence: ULE failed. No remaining broker found.`);
+                                    newSequence.push(`3. Result: Partition ${pId} remains **Offline**.`);
+                                    newSequence.push(`4. Kafka Clients: Producer/Consumer receive **NotEnoughReplicas** error.`);
+                                }
+                            } else {
+                                // No new ISR found and ULE is disabled. (SAFE FAIL)
+                                newSequence.push(`2. KRaft Sequence: Controller failed to find an available In-Sync Replica (ISR). ULE is Disabled.`);
+                                newSequence.push(`3. Result: Partition ${pId} is **Offline** (Stuck).`);
+                                newSequence.push(`4. Kafka Clients: Producer/Consumer receive **NotEnoughReplicas** error.`);
+                            }
+                        }
+                    } 
+                    
+                    // --- Case 2: Quorum Loss ---
+                    else if (!quorumMaintained) {
+                        newSequence.push("2. KRaft Blocked: Quorum destroyed. New Leader cannot be elected.");
+                        newSequence.push(`3. Result: Partition ${pId} remains Offline/Unavailable. Clients receive persistent Errors.`);
+                    }
+                } else {
+                    // Leader remains operational (or unreachable externally, but internally fine)
+                    newSequence.push(`Partition ${pId}: Leader (${initialLeader}) remains operational. ISR Count: ${currentISRCount}.`);
+                }
+            }
+            
+            // FINAL STEP: Revert the status of the forced DOWN components back to their actual UP/DOWN state for the next run and display
+            if (dc1IngressDown) {
+                ['C1', 'C2'].forEach(id => { clusterState.kraft_controllers[id].status = originalDC1Controllers[id]; });
+                ['A1', 'A2', 'A3'].forEach(id => { clusterState.brokers[id].status = originalDC1Brokers[id]; });
+                newSequence.push(`--- DC1 Component State Restored ---`);
+                newSequence.push(`- Note: Brokers A1-A3 are internally UP but remain externally unreachable via Ingress VIP.`);
+            }
+            if (dc2IngressDown) {
+                ['C3', 'C4'].forEach(id => { clusterState.kraft_controllers[id].status = originalDC2Controllers[id]; });
+                ['B1', 'B2', 'B3'].forEach(id => { clusterState.brokers[id].status = originalDC2Brokers[id]; });
+                newSequence.push(`--- DC2 Component State Restored ---`);
+                newSequence.push(`- Note: Brokers B1-B3 are internally UP but remain externally unreachable via Ingress VIP.`);
+            }
+            return newSequence;
+        }
+        
+        // **********************************************
+        // (Other utility functions like readCustomState, toggleStatus, etc. remain the same)
+        // **********************************************
+
+        /**
+         * Reads component states from the custom UI and updates clusterState.
+         */
+        function readCustomState() {
+            // Start by resetting to a clean UP state
+            let newState = JSON.parse(JSON.stringify(initialState));
+
+            // Iterate through all control elements and set status in newState
+            const controls = document.querySelectorAll('.status-box-toggle');
+            controls.forEach(control => {
+                const idParts = control.id.split('_');
+                const type = idParts[0];
+                const id = idParts.slice(1).join('_'); // Rejoin in case of IDs like DC1_CONNECT
+
+                const status = control.classList.contains('up-state') ? 'UP' : 'DOWN';
+
+                if (type === 'ctrl') {
+                    if (newState.kraft_controllers[id]) newState.kraft_controllers[id].status = status;
+                } else if (type === 'brkr') {
+                    if (newState.brokers[id]) newState.brokers[id].status = status;
+                } else if (type === 'svc') {
+                    if (newState.services[id]) newState.services[id].status = status;
+                }
+            });
+
+            return newState;
+        }
+        
+        /**
+         * Main function to run the custom simulation.
+         */
+        window.runSimulation = function() {
+            // 1. Read the current state from the UI elements
+            const currentState = readCustomState();
+            
+            // 2. Set the initial partition state for the new run
+            // This is essential so the logic always compares against the clean initial leader
+            clusterState = JSON.parse(JSON.stringify(currentState));
+            clusterState.partitions = JSON.parse(JSON.stringify(initialState.partitions)); 
+
+            // 3. Execute Failover Sequence
+            const summary = getFailedComponentsSummary(); // Get summary first
+            
+            const failoverSteps = updateStateAfterFailover(summary); // Pass summary to be the log start
+            
+            // 4. Render UI & Determine Client Impact
+            renderClusterHealth();
+            renderPartitionStatus();
+            renderClientImpact(); 
+            renderSequenceLog(failoverSteps);
+        }
+
+        /**
+         * Special case for Restore All UP button
+         */
+        window.runScenario = function(scenarioId) {
+            if (scenarioId === 5) {
+                // Restore logic
+                clusterState = JSON.parse(JSON.stringify(initialState));
+                clusterState.partitions = JSON.parse(JSON.stringify(initialState.partitions));
+                
+                // Update UI status boxes to reflect UP state
+                document.querySelectorAll('.status-box-toggle').forEach(element => {
+                    element.classList.add('up-state');
+                    element.classList.remove('down-state');
+                    element.querySelector('.status-text').textContent = 'UP';
+                });
+                
+                // NOTE: Inputs are removed, so no need to restore element values
+                
+                const log = ["--- 🛑 Initial Failure Event Summary 🛑 ---", "- No components were manually stopped.", "--- KRaft Failover Sequence Execution ---", "Event: Cluster restoration initiated.", "Result: Cluster restored to full operational status."];
+                renderClusterHealth();
+                renderPartitionStatus();
+                renderClientImpact(); 
+                renderSequenceLog(log);
+            }
+        }
+
+
+        function renderClientImpact() {
+            const { quorumMaintained } = checkQuorum();
+            let producerMsg = "✅ Status Normal (Available).";
+            let consumerMsg = "✅ Status Normal (Available).";
+            let serviceMsg = "✅ All services operational.";
+
+            const minISR = MIN_ISR;
+            const uncleanEnabled = UNCLEAN_ENABLED;
+            let partitionsOffline = 0;
+            let leadersFailed = 0;
+            let ingressDownCount = 0;
+            let uncleanUsed = false;
+
+            
+            // Analyze partition availability after simulation logic has run
+            for (const [pId, pData] of Object.entries(initialState.partitions)) {
+                
+                const isrCount = getISRCount(pId);
+                const isAvailable = isrCount >= minISR;
+                const initialLeader = initialState.partitions[pId].leader;
+                const currentLeader = clusterState.partitions[pId].leader;
+
+                if (clusterState.brokers[initialLeader].status === 'DOWN') {
+                    leadersFailed++;
+                }
+                
+                if (!isAvailable) {
+                    partitionsOffline++;
+                }
+
+                // Rough check to see if an unclean election was the result
+                // This logic needs to reflect the final partition leader state after updateStateAfterFailover
+                if (currentLeader !== initialLeader && clusterState.brokers[initialLeader].status === 'DOWN' && uncleanEnabled) {
+                    // Check if the new leader is an Unclean Leader (i.e., elected when Min.ISR would have failed clean election)
+                    const oldISRCount = getISRCount(pId);
+                    if (oldISRCount < minISR) {
+                         uncleanUsed = true;
+                    }
+                }
+            }
+            
+            if (clusterState.services.DC1_INGRESS.status === 'DOWN') ingressDownCount++;
+            if (clusterState.services.DC2_INGRESS.status === 'DOWN') ingressDownCount++;
+
+            
+            // --- Quorum Check ---
+            if (!quorumMaintained) {
+                producerMsg = "🛑 Control Plane Lost. Producer must stop writing metadata requests (e.g., topic creation). Existing partitions keep serving.";
+                consumerMsg = "🛑 Control Plane Lost. Consumer must stop fetching metadata. Existing partitions keep serving.";
+                serviceMsg = "🛑 Connect/SR Services: **Frozen** and unable to register new tasks/schemas due to Control Plane failure.";
+            } 
+            
+            // --- Data Plane Check (Only if Quorum is UP) ---
+            else if (partitionsOffline > 0) {
+                 producerMsg = `🛑 Producer: Fails to write data to ${partitionsOffline} Partition(s) (**ISR Count < Min.ISR**). Write traffic is **blocked** to prevent data loss.`;
+                 consumerMsg = `🛑 Consumer: Stops reading for ${partitionsOffline} Partition(s) (**ISR Count < Min.ISR**).`;
+            } else if (uncleanUsed) {
+                producerMsg = `⚠️ Producer: Writes succeeded to Unclean Leaders. **Data Loss Risk** is high.`;
+                consumerMsg = `⚠️ Consumer: Reads succeeded from Unclean Leaders. **Data Loss Risk** is high.`;
+            } else if (leadersFailed > 0) {
+                // Leaders failed, but new ones were found (100% recovery) AND Min.ISR was maintained
+                producerMsg = "⚠️ Producer: **Brief Metadata Refresh/Stutter** before being redirected to the New Leader(s) within seconds. Write traffic resumes. (Auto-Failover Successful)";
+                consumerMsg = "⚠️ Consumer: **Brief Metadata Refresh/Stutter** as it follows the New Leader(s). Reading resumes quickly. (Auto-Failover Successful)";
+            } else if (ingressDownCount > 0) {
+                 // Ingress is down, but NO internal component failed AND Leaders are still UP (Fix 1: Decoupling)
+                const downSites = [];
+                if (clusterState.services.DC1_INGRESS.status === 'DOWN') downSites.push('DC1');
+                if (clusterState.services.DC2_INGRESS.status === 'DOWN') downSites.push('DC2');
+                const downIngress = downSites.join(' and ');
+
+                producerMsg = `⚠️ Producer: Connection attempts via ${downIngress} VIP fail. Clients successfully **Redirect** traffic to the operational VIP. **Cluster internals are stable.**`;
+                consumerMsg = `⚠️ Consumer: Connection attempts via ${downIngress} VIP fail. Clients successfully **Redirect** traffic to the operational VIP. **Cluster internals are stable.**`;
+            }
+
+
+            // --- Service Check (Independent of Broker/Quorum, unless Quorum is DOWN) ---
+            if (quorumMaintained) {
+                const dc1ConnectDown = clusterState.services.DC1_CONNECT.status === 'DOWN';
+                const dc2ConnectDown = clusterState.services.DC2_CONNECT.status === 'DOWN';
+                const dc1SRDown = clusterState.services.DC1_SR.status === 'DOWN';
+                const dc2SRDown = clusterState.services.DC2_SR.status === 'DOWN';
+
+                const serviceSummary = [];
+
+                if (dc1ConnectDown && dc2ConnectDown) {
+                    serviceSummary.push("🛑 **All Connect Ingestion Blocked.**");
+                } else if (dc1ConnectDown) {
+                     serviceSummary.push("⚠️ **DC1 Connect Blocked.** DC2 Connect is operational.");
+                } else if (dc2ConnectDown) {
+                     serviceSummary.push("⚠️ **DC2 Connect Blocked.** DC1 Connect is operational.");
+                }
+
+                if (dc1SRDown && dc2SRDown) {
+                    serviceSummary.push("🛑 **All Schema Registry Down.** Schema operations fail.");
+                } else if (dc1SRDown && !dc2SRDown) {
+                    serviceSummary.push("⚠️ **DC1 Schema Registry Down.** Operations should shift to DC2.");
+                } else if (dc2SRDown && !dc1SRDown) {
+                    serviceSummary.push("⚠️ **DC2 Schema Registry Down.** Operations should shift to DC1.");
+                }
+                
+                if (serviceSummary.length === 0) {
+                    serviceMsg = "✅ All services operational.";
+                } else {
+                    serviceMsg = serviceSummary.join(' ');
+                }
+            }
+
+
+            document.getElementById('producer_impact').innerHTML = `<span class="font-bold">Producer (Write):</span> ${producerMsg}`;
+            document.getElementById('consumer_impact').innerHTML = `<span class="font-bold">Consumer (Read):</span> ${consumerMsg}`;
+            document.getElementById('service_impact').innerHTML = `<span class="font-bold">Connect/SR:</span> ${serviceMsg}`;
+        }
+
+
+        function renderSequenceLog(log) {
+            const container = document.getElementById('sequence_log');
+            container.innerHTML = log.map(item => {
+                let colorClass = 'text-gray-800';
+                if (item.startsWith('--- 🛑')) colorClass = 'font-bold text-base text-red-700 mt-2'; // Summary Header
+                else if (item.startsWith('--- KRaft')) colorClass = 'font-bold text-base text-indigo-700 mt-2'; // Sequence Header
+                else if (item.startsWith('--- CRITICAL')) colorClass = 'font-bold text-base text-red-700 mt-2'; // CRITICAL Header
+                else if (item.startsWith('- ⚠️')) colorClass = 'text-yellow-600 italic ml-4'; // Forced Failure Item
+                else if (item.startsWith('-')) colorClass = 'text-red-500 italic ml-4'; // Summary Item
+                else if (item.includes('failed') || item.includes('Fails')) colorClass = 'text-red-600';
+                else if (item.includes('KRaft Sequence:')) colorClass = 'text-blue-600 italic';
+                else if (item.startsWith('✅') || item.includes('MAINTAINED')) colorClass = 'text-green-700 font-medium';
+                else if (item.includes('Metadata Refresh')) colorClass = 'text-yellow-700 font-bold';
+                else if (item.startsWith('🛑') || item.includes('LOST') || item.includes('Offline')) colorClass = 'text-red-800 font-bold';
+                else if (item.startsWith('⚠️') || item.includes('Brief Stutter') || item.includes('Brief Delay')) colorClass = 'text-yellow-700 font-medium';
+                
+                // Use a simple <li> for the main sequence items, remove bullet for summary items
+                return `<li class="${colorClass}">${item.replace('-', '')}</li>`;
+            }).join('');
+            
+            // Scroll to the bottom of the log container after update
+            const logContainer = document.getElementById('sequence_log_container');
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Initialize UI on load
+        window.onload = () => {
+            buildCustomUI();
+            runScenario(5); // Start at the restored state
+        };
+    </script>
+</body>
+</html>
