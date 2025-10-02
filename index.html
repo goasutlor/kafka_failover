@@ -1092,9 +1092,9 @@
 
         function renderClientImpact() {
             const { quorumMaintained } = checkQuorum();
-            let producerMsg = "✅ Status Normal (Available).";
-            let consumerMsg = "✅ Status Normal (Available).";
-            let serviceMsg = "✅ All services operational.";
+            let producerMsg = "";
+            let consumerMsg = "";
+            let serviceMsg = "";
 
             const minISR = MIN_ISR;
             const uncleanEnabled = UNCLEAN_ENABLED;
@@ -1136,71 +1136,71 @@
 
             
             // --- Quorum Check ---
-            if (!quorumMaintained) {
-                producerMsg = "🛑 Control Plane Lost. Producer must stop writing metadata requests (e.g., topic creation). Existing partitions keep serving.";
-                consumerMsg = "🛑 Control Plane Lost. Consumer must stop fetching metadata. Existing partitions keep serving.";
-                serviceMsg = "🛑 Connect/SR Services: **Frozen** and unable to register new tasks/schemas due to Control Plane failure.";
-            } 
-            
-            // --- Data Plane Check (Only if Quorum is UP) ---
-            else if (partitionsOffline > 0) {
-                 producerMsg = `🛑 Producer: Fails to write data to ${partitionsOffline} Partition(s) (**ISR Count < Min.ISR**). Write traffic is **blocked** to prevent data loss.`;
-                 consumerMsg = `🛑 Consumer: Stops reading for ${partitionsOffline} Partition(s) (**ISR Count < Min.ISR**).`;
-            } else if (uncleanUsed) {
-                producerMsg = `⚠️ Producer: Writes succeeded to Unclean Leaders. **Data Loss Risk** is high.`;
-                consumerMsg = `⚠️ Consumer: Reads succeeded from Unclean Leaders. **Data Loss Risk** is high.`;
-            } else if (leadersFailed > 0) {
-                // Leaders failed, but new ones were found (100% recovery) AND Min.ISR was maintained
-                producerMsg = "⚠️ Producer: **Brief Metadata Refresh/Stutter** before being redirected to the New Leader(s) within seconds. Write traffic resumes. (Auto-Failover Successful)";
-                consumerMsg = "⚠️ Consumer: **Brief Metadata Refresh/Stutter** as it follows the New Leader(s). Reading resumes quickly. (Auto-Failover Successful)";
-            } else if (ingressDownCount > 0) {
-                 // Ingress is down, but NO internal component failed AND Leaders are still UP (Fix 1: Decoupling)
-                const downSites = [];
-                if (clusterState.services.DC1_INGRESS.status === 'DOWN') downSites.push('DC1');
-                if (clusterState.services.DC2_INGRESS.status === 'DOWN') downSites.push('DC2');
-                const downIngress = downSites.join(' and ');
+            // Build compact badges
+            const red = '<span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500 mr-2 align-middle"></span>';
+            const yellow = '<span class="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 mr-2 align-middle"></span>';
+            const green = '<span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500 mr-2 align-middle"></span>';
 
-                producerMsg = `⚠️ Producer: Connection attempts via ${downIngress} VIP fail. Clients successfully **Redirect** traffic to the operational VIP. **Cluster internals are stable.**`;
-                consumerMsg = `⚠️ Consumer: Connection attempts via ${downIngress} VIP fail. Clients successfully **Redirect** traffic to the operational VIP. **Cluster internals are stable.**`;
+            // Producer
+            const prodMeta = !quorumMaintained
+                ? `${red} <span class="font-medium">Control plane:</span> Lost — metadata ops blocked (topic/ACL/partition)`
+                : `${green} <span class="font-medium">Control plane:</span> OK — metadata ops available`;
+
+            let prodData;
+            if (partitionsOffline > 0) {
+                prodData = `${red} <span class=\"font-medium\">Data plane:</span> Writes blocked on ${partitionsOffline} partition(s) (ISR < Min.ISR)`;
+            } else {
+                prodData = `${green} <span class=\"font-medium\">Data plane:</span> Writes OK on partitions with leader and ISR ≥ Min.ISR`;
             }
+            const prodRisk = !quorumMaintained
+                ? `${yellow} <span class="font-medium">Risk:</span> If a leader fails while quorum is lost, writes stop until quorum restored`
+                : '';
+            producerMsg = `<div class="space-y-1">${prodMeta}<br>${prodData}${prodRisk ? `<br>${prodRisk}` : ''}</div>`;
 
-
-            // --- Service Check (Independent of Broker/Quorum, unless Quorum is DOWN) ---
-            if (quorumMaintained) {
-                const dc1ConnectDown = clusterState.services.DC1_CONNECT.status === 'DOWN';
-                const dc2ConnectDown = clusterState.services.DC2_CONNECT.status === 'DOWN';
-                const dc1SRDown = clusterState.services.DC1_SR.status === 'DOWN';
-                const dc2SRDown = clusterState.services.DC2_SR.status === 'DOWN';
-
-                const serviceSummary = [];
-
-                if (dc1ConnectDown && dc2ConnectDown) {
-                    serviceSummary.push("🛑 **All Connect Ingestion Blocked.**");
-                } else if (dc1ConnectDown) {
-                     serviceSummary.push("⚠️ **DC1 Connect Blocked.** DC2 Connect is operational.");
-                } else if (dc2ConnectDown) {
-                     serviceSummary.push("⚠️ **DC2 Connect Blocked.** DC1 Connect is operational.");
-                }
-
-                if (dc1SRDown && dc2SRDown) {
-                    serviceSummary.push("🛑 **All Schema Registry Down.** Schema operations fail.");
-                } else if (dc1SRDown && !dc2SRDown) {
-                    serviceSummary.push("⚠️ **DC1 Schema Registry Down.** Operations should shift to DC2.");
-                } else if (dc2SRDown && !dc1SRDown) {
-                    serviceSummary.push("⚠️ **DC2 Schema Registry Down.** Operations should shift to DC1.");
-                }
-                
-                if (serviceSummary.length === 0) {
-                    serviceMsg = "✅ All services operational.";
-                } else {
-                    serviceMsg = serviceSummary.join(' ');
-                }
+            // Consumer
+            const consMeta = !quorumMaintained
+                ? `${red} <span class="font-medium">Control plane:</span> Lost — metadata refresh/admin blocked`
+                : `${green} <span class="font-medium">Control plane:</span> OK — metadata refresh available`;
+            let consData;
+            if (partitionsOffline > 0) {
+                consData = `${red} <span class=\"font-medium\">Data plane:</span> Reads stopped on ${partitionsOffline} partition(s) (ISR < Min.ISR)`;
+            } else {
+                consData = `${green} <span class=\"font-medium\">Data plane:</span> Reads OK from partitions with current leaders`;
             }
+            const consRisk = !quorumMaintained
+                ? `${yellow} <span class="font-medium">Risk:</span> If any leader fails, reads stop until quorum restored`
+                : '';
+            consumerMsg = `<div class="space-y-1">${consMeta}<br>${consData}${consRisk ? `<br>${consRisk}` : ''}</div>`;
 
+            // Connect / Schema Registry
+            const dc1ConnectDown = clusterState.services.DC1_CONNECT.status === 'DOWN';
+            const dc2ConnectDown = clusterState.services.DC2_CONNECT.status === 'DOWN';
+            const dc1SRDown = clusterState.services.DC1_SR.status === 'DOWN';
+            const dc2SRDown = clusterState.services.DC2_SR.status === 'DOWN';
 
-            document.getElementById('producer_impact').innerHTML = `<span class="font-bold">Producer (Write):</span> ${producerMsg}`;
-            document.getElementById('consumer_impact').innerHTML = `<span class="font-bold">Consumer (Read):</span> ${consumerMsg}`;
-            document.getElementById('service_impact').innerHTML = `<span class="font-bold">Connect/SR:</span> ${serviceMsg}`;
+            const metaConnect = !quorumMaintained
+                ? `${red} <span class="font-medium">Metadata:</span> Registering new tasks/schemas blocked`
+                : `${green} <span class="font-medium">Metadata:</span> Registry/Connect admin available`;
+
+            // availability of existing tasks (approximate)
+            const dataConnect = `${green} <span class="font-medium">Data I/O:</span> Existing tasks continue if internal topics leaders remain up and ISR ≥ Min.ISR`;
+            const svcRisk = !quorumMaintained
+                ? `${yellow} <span class="font-medium">Advisory:</span> Freeze config/rollouts until quorum is restored`
+                : '';
+
+            const svcDowns = [];
+            if (dc1ConnectDown && dc2ConnectDown) svcDowns.push('Connect (both sites)');
+            else if (dc1ConnectDown) svcDowns.push('Connect DC1');
+            else if (dc2ConnectDown) svcDowns.push('Connect DC2');
+            if (dc1SRDown && dc2SRDown) svcDowns.push('Schema Registry (both sites)');
+            else if (dc1SRDown) svcDowns.push('Schema Registry DC1');
+            else if (dc2SRDown) svcDowns.push('Schema Registry DC2');
+            const svcDownNote = svcDowns.length > 0 ? `<br>${red} <span class=\"font-medium\">Outage:</span> ${svcDowns.join(', ')} down` : '';
+            serviceMsg = `<div class="space-y-1">${metaConnect}<br>${dataConnect}${svcDownNote}${svcRisk ? `<br>${svcRisk}` : ''}</div>`;
+
+            document.getElementById('producer_impact').innerHTML = `<span class="font-bold">Producer (Write)</span><br>${producerMsg}`;
+            document.getElementById('consumer_impact').innerHTML = `<span class="font-bold">Consumer (Read)</span><br>${consumerMsg}`;
+            document.getElementById('service_impact').innerHTML = `<span class="font-bold">Connect/SR</span><br>${serviceMsg}`;
         }
 
 
