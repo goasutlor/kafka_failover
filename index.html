@@ -1158,6 +1158,23 @@
             const yellow = '<span class="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 mr-2 align-middle"></span>';
             const green = '<span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500 mr-2 align-middle"></span>';
 
+            const bothIngressDown =
+                clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                clusterState.services.DC2_INGRESS.status === 'DOWN';
+
+            // If all external VIPs are down, clients cannot connect to brokers at all
+            if (bothIngressDown) {
+                const extMsg = `${red} <span class=\"font-medium\">Client connectivity:</span> All Ingress VIPs are DOWN — cannot connect to brokers`;
+                producerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Writes unavailable (no client access)</div>`;
+                consumerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Reads unavailable (no client access)</div>`;
+                serviceMsg = `<div class=\"space-y-1\">${extMsg}<br>${yellow} <span class=\"font-medium\">Note:</span> Internal services may continue inside the cluster, but are unreachable externally.</div>`;
+
+                document.getElementById('producer_impact').innerHTML = `<span class=\"font-bold\">Producer (Write)</span><br>${producerMsg}`;
+                document.getElementById('consumer_impact').innerHTML = `<span class=\"font-bold\">Consumer (Read)</span><br>${consumerMsg}`;
+                document.getElementById('service_impact').innerHTML = `<span class=\"font-bold\">Connect/SR</span><br>${serviceMsg}`;
+                return;
+            }
+
             // Producer
             const prodMeta = !quorumMaintained
                 ? `${red} <span class="font-medium">Control plane:</span> Lost — metadata ops blocked (topic/ACL/partition)`
