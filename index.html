@@ -752,7 +752,24 @@
             const minISR = MIN_ISR; // Use constant
             const uncleanEnabled = UNCLEAN_ENABLED; // Use constant
             const { quorumMaintained } = checkQuorum();
+            const bothIngressDown =
+                clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                clusterState.services.DC2_INGRESS.status === 'DOWN';
 
+            // If all external VIPs are down, partitions are unreachable from outside
+            if (bothIngressDown) {
+                for (const [pId] of Object.entries(clusterState.partitions)) {
+                    const card = `
+                        <div class="p-3 rounded-xl shadow-md border bg-red-50 border-gray-200 min-h-[100px]">
+                            <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
+                            <p class="text-xs font-semibold text-red-800">External access lost: All Ingress VIPs are DOWN. Partition is <strong>Unreachable/Offline</strong> for clients.</p>
+                            <p class="text-[10px] text-gray-600 mt-1">Note: Internal leaders may still be serving inside the cluster, but no client connectivity is available.</p>
+                        </div>
+                    `;
+                    container.innerHTML += card;
+                }
+                return;
+            }
 
             for (const [pId, pData] of Object.entries(clusterState.partitions)) {
                 // Find the initial leader from the start state
@@ -1173,10 +1190,10 @@
             consumerMsg = `<div class="space-y-1">${consMeta}<br>${consData}${consRisk ? `<br>${consRisk}` : ''}</div>`;
 
             // Connect / Schema Registry
-            const dc1ConnectDown = clusterState.services.DC1_CONNECT.status === 'DOWN';
-            const dc2ConnectDown = clusterState.services.DC2_CONNECT.status === 'DOWN';
-            const dc1SRDown = clusterState.services.DC1_SR.status === 'DOWN';
-            const dc2SRDown = clusterState.services.DC2_SR.status === 'DOWN';
+                const dc1ConnectDown = clusterState.services.DC1_CONNECT.status === 'DOWN';
+                const dc2ConnectDown = clusterState.services.DC2_CONNECT.status === 'DOWN';
+                const dc1SRDown = clusterState.services.DC1_SR.status === 'DOWN';
+                const dc2SRDown = clusterState.services.DC2_SR.status === 'DOWN';
 
             const metaConnect = !quorumMaintained
                 ? `${red} <span class="font-medium">Metadata:</span> Registering new tasks/schemas blocked`
