@@ -197,6 +197,12 @@
                         <div id="dc1_controls" class="component-group-container border-t-4 border-blue-600 space-y-3">
                             <h3 class="font-extrabold text-sm text-blue-700 border-b pb-1">DC1 Components</h3>
                             
+                            <!-- DC1 Ingress (Gateway) -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-blue-700">Gateway (Ingress VIP)</p>
+                                <div id="dc1_ingress_top" class="control-grid-1"></div>
+                            </div>
+
                             <!-- DC1 Controllers -->
                             <div class="space-y-1">
                                 <p class="text-[10px] font-bold text-gray-600">KRaft Ctrls (C1, C2)</p>
@@ -211,7 +217,7 @@
 
                             <!-- DC1 Services -->
                             <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">Services/Ingress</p>
+                                <p class="text-[10px] font-bold text-gray-600">Services</p>
                                 <div id="dc1_services_container" class="control-grid-1"></div>
                             </div>
                             <!-- New Button for DC1 All Down -->
@@ -235,6 +241,12 @@
                         <div id="dc2_controls" class="component-group-container border-t-4 border-green-600 space-y-3">
                             <h3 class="font-extrabold text-sm text-green-700 border-b pb-1">DC2 Components</h3>
 
+                            <!-- DC2 Ingress (Gateway) -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-green-700">Gateway (Ingress VIP)</p>
+                                <div id="dc2_ingress_top" class="control-grid-1"></div>
+                            </div>
+
                             <!-- DC2 Controllers -->
                             <div class="space-y-1">
                                 <p class="text-[10px] font-bold text-gray-600">KRaft Ctrls (C3, C4)</p>
@@ -249,7 +261,7 @@
 
                             <!-- DC2 Services -->
                             <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">Services/Ingress</p>
+                                <p class="text-[10px] font-bold text-gray-600">Services</p>
                                 <div id="dc2_services_container" class="control-grid-1"></div>
                             </div>
                             <!-- New Button for DC2 All Down -->
@@ -624,9 +636,17 @@
             Object.keys(initialState.brokers).filter(id => initialState.brokers[id].site === 'DC1').forEach(id => {
                 dc1_brkr.innerHTML += generateControlHtml(id, id, initialState.brokers[id].status === 'UP', 'brkr');
             });
-            Object.keys(initialState.services).filter(id => initialState.services[id].site === 'DC1').forEach(id => {
-                dc1_svc.innerHTML += generateControlHtml(id, initialState.services[id].desc, initialState.services[id].status === 'UP', 'svc');
-            });
+            // Move Ingress to top group
+            const dc1IngressId = 'DC1_INGRESS';
+            const dc1IngressEl = document.getElementById('dc1_ingress_top');
+            if (dc1IngressEl && initialState.services[dc1IngressId]) {
+                dc1IngressEl.innerHTML = generateControlHtml(dc1IngressId, initialState.services[dc1IngressId].desc, initialState.services[dc1IngressId].status === 'UP', 'svc');
+            }
+            Object.keys(initialState.services)
+                .filter(id => initialState.services[id].site === 'DC1' && id !== dc1IngressId)
+                .forEach(id => {
+                    dc1_svc.innerHTML += generateControlHtml(id, initialState.services[id].desc, initialState.services[id].status === 'UP', 'svc');
+                });
 
             // Render Site 3 Components
             Object.keys(initialState.kraft_controllers).filter(id => initialState.kraft_controllers[id].site === 'Site3').forEach(id => {
@@ -640,9 +660,16 @@
             Object.keys(initialState.brokers).filter(id => initialState.brokers[id].site === 'DC2').forEach(id => {
                 dc2_brkr.innerHTML += generateControlHtml(id, id, initialState.brokers[id].status === 'UP', 'brkr');
             });
-            Object.keys(initialState.services).filter(id => initialState.services[id].site === 'DC2').forEach(id => {
-                dc2_svc.innerHTML += generateControlHtml(id, initialState.services[id].desc, initialState.services[id].status === 'UP', 'svc');
-            });
+            const dc2IngressId = 'DC2_INGRESS';
+            const dc2IngressEl = document.getElementById('dc2_ingress_top');
+            if (dc2IngressEl && initialState.services[dc2IngressId]) {
+                dc2IngressEl.innerHTML = generateControlHtml(dc2IngressId, initialState.services[dc2IngressId].desc, initialState.services[dc2IngressId].status === 'UP', 'svc');
+            }
+            Object.keys(initialState.services)
+                .filter(id => initialState.services[id].site === 'DC2' && id !== dc2IngressId)
+                .forEach(id => {
+                    dc2_svc.innerHTML += generateControlHtml(id, initialState.services[id].desc, initialState.services[id].status === 'UP', 'svc');
+                });
             
             // NOTE: Min.ISR input removed from UI
         }
