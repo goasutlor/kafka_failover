@@ -294,7 +294,7 @@
                             <span id="display_min_isr" class="font-extrabold text-gray-800">3</span>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Availability requires: ISR count ≥ Min.ISR. With RF = 4 and Min.ISR = 3, the system can tolerate up to 1 broker failure without data loss. Partition assignments are randomly distributed across all 6 brokers.</p>
+                    <p class="text-xs text-gray-500 mt-2">Availability requires: ISR count ≥ Min.ISR. With RF = 4 and Min.ISR = 3, the system can tolerate up to 1 broker failure without data loss. All 6 brokers participate in partition assignments with random distribution.</p>
                 </div>
 
 
@@ -353,7 +353,7 @@
                 C4: { site: 'DC2', status: 'UP', desc: 'Controller C4 (DC2)' },
                 C5: { site: 'Site3', status: 'UP', desc: 'Controller C5 (Site 3 VM)' }, // External VM
             },
-            // Brokers (A1, A2, A3 in DC1; B1, B2, B3 in DC2) - Random partition assignment
+            // Brokers (A1, A2, A3 in DC1; B1, B2, B3 in DC2) - All brokers participate in partitions
             brokers: {
                 A1: { site: 'DC1', status: 'UP', desc: 'Broker A1 (P0 Leader, P1/P2 Follower)' }, 
                 A2: { site: 'DC1', status: 'UP', desc: 'Broker A2 (P2 Leader, P1 Follower)' },
@@ -373,9 +373,9 @@
             },
             // Topic: SalesData (3 Partitions, Replication Factor 4, randomly distributed across 6 brokers)
             partitions: {
-                P0: { leader: 'A1', followers: ['B2', 'A3', 'B1'] }, // RF=4 (random assignment)
-                P1: { leader: 'B3', followers: ['A2', 'B1', 'A1'] }, // RF=4 (random assignment)
-                P2: { leader: 'A2', followers: ['B2', 'A1', 'B3'] }, // RF=4 (random assignment)
+                P0: { leader: 'A1', followers: ['B2', 'A3', 'B1'] }, // RF=4 (A1,B2,A3,B1)
+                P1: { leader: 'B3', followers: ['A2', 'B1', 'A1'] }, // RF=4 (B3,A2,B1,A1)
+                P2: { leader: 'A2', followers: ['B2', 'A1', 'B3'] }, // RF=4 (A2,B2,A1,B3)
             },
             // Configuration Parameters (kept for reference, but UI removed)
             config: {
@@ -877,7 +877,7 @@
                     <div class="p-3 rounded-xl shadow-md border ${leaderBgClass} border-gray-200 min-h-[100px]">
                         <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
                         <p class="text-xs font-semibold ${leaderColorClass}">${leaderText}</p>
-                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=4): ${allReplicas} (random assignment)</p>
+                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=4): ${allReplicas}</p>
                     </div>
                 `;
                 container.innerHTML += card;
