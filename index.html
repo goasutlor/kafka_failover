@@ -745,7 +745,7 @@
                 const isSiteUnreachable = ingressStatus === 'DOWN';
                 
                 if (isSiteUnreachable) {
-                    // OVERRIDE visual status to UNAVAILABLE
+                    // OVERRIDE visual status to UNAVAILABLE - F5 VIP Down = Site Down
                     brokerStatus = 'UNAVAILABLE';
                     kraftStatus = 'UNAVAILABLE';
                     serviceStatus = 'UNAVAILABLE';
@@ -918,7 +918,7 @@
 
             if (dc1IngressDown) {
                 newSequence.push("--- CRITICAL ADJUSTMENT: DC1 Ingress Dependency ---");
-                newSequence.push(`- Ingress VIP DC1 is DOWN. KRaft assumes DC1 is internally unreachable (VIP SPOF).`);
+                newSequence.push(`- Ingress VIP DC1 is DOWN. F5 VIP Down = DC1 Site Down (Gateway SPOF).`);
 
                 ['C1', 'C2'].forEach(id => {
                     originalDC1Controllers[id] = clusterState.kraft_controllers[id].status;
@@ -938,7 +938,7 @@
 
             if (dc2IngressDown) {
                 newSequence.push("--- CRITICAL ADJUSTMENT: DC2 Ingress Dependency ---");
-                newSequence.push(`- Ingress VIP DC2 is DOWN. KRaft assumes DC2 is internally unreachable (VIP SPOF).`);
+                newSequence.push(`- Ingress VIP DC2 is DOWN. F5 VIP Down = DC2 Site Down (Gateway SPOF).`);
                 
                 // Force DC2 components to DOWN status for the purpose of KRaft decision-making (Leader Election)
                 ['C3', 'C4'].forEach(id => { 
@@ -1053,13 +1053,13 @@
                 ['C1', 'C2'].forEach(id => { clusterState.kraft_controllers[id].status = originalDC1Controllers[id]; });
                 ['A1', 'A2', 'A3'].forEach(id => { clusterState.brokers[id].status = originalDC1Brokers[id]; });
                 newSequence.push(`--- DC1 Component State Restored ---`);
-                newSequence.push(`- Note: Brokers A1-A3 are internally UP but remain externally unreachable via Ingress VIP.`);
+                newSequence.push(`- Note: F5 VIP Down = DC1 Site Down. Brokers A1-A3 are internally UP but externally unreachable.`);
             }
             if (dc2IngressDown) {
                 ['C3', 'C4'].forEach(id => { clusterState.kraft_controllers[id].status = originalDC2Controllers[id]; });
                 ['B1', 'B2', 'B3'].forEach(id => { clusterState.brokers[id].status = originalDC2Brokers[id]; });
                 newSequence.push(`--- DC2 Component State Restored ---`);
-                newSequence.push(`- Note: Brokers B1-B3 are internally UP but remain externally unreachable via Ingress VIP.`);
+                newSequence.push(`- Note: F5 VIP Down = DC2 Site Down. Brokers B1-B3 are internally UP but externally unreachable.`);
             }
             return newSequence;
         }
