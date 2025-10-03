@@ -406,6 +406,14 @@
                     isrCount++;
                 }
             }
+            
+            // Debug: Log the calculation
+            console.log(`getISRCount(${partitionId}): replicas=${allReplicas.join(',')}, isrCount=${isrCount}`);
+            allReplicas.forEach(brokerId => {
+                const status = clusterState.brokers[brokerId] ? clusterState.brokers[brokerId].status : 'NOT_FOUND';
+                console.log(`  ${brokerId}: ${status}`);
+            });
+            
             return isrCount;
         }
 
@@ -807,6 +815,11 @@
                 // 1. Calculate ISR Count based on current state
                 const isrCount = getISRCount(pId);
                 const isAvailable = isrCount >= minISR;
+                
+                // Debug log for ISR calculation
+                console.log(`Partition ${pId}: ISR Count = ${isrCount}, Min.ISR = ${minISR}, Available = ${isAvailable}`);
+                console.log(`Partition ${pId} replicas:`, [partition.leader, ...partition.followers]);
+                console.log(`Broker statuses:`, Object.keys(clusterState.brokers).map(id => `${id}:${clusterState.brokers[id].status}`));
 
                 let leaderText;
                 let leaderColorClass;
