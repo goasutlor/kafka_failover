@@ -287,14 +287,14 @@
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div class="flex items-center justify-start space-x-2">
                             <label class="font-medium text-gray-600">Replication Factor (RF):</label>
-                            <span class="font-extrabold text-gray-800">4 (from 6 brokers)</span>
+                            <span class="font-extrabold text-gray-800">6 (All Brokers)</span>
                         </div>
                         <div class="flex items-center justify-start space-x-2">
                             <label class="font-medium text-gray-600">Min.ISR:</label>
                             <span id="display_min_isr" class="font-extrabold text-gray-800">3</span>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Availability requires: ISR count ≥ Min.ISR. With RF = 4 and Min.ISR = 3, the system can tolerate up to 1 broker failure without data loss. All 6 brokers participate in partition assignments with random distribution.</p>
+                    <p class="text-xs text-gray-500 mt-2">Availability requires: ISR count ≥ Min.ISR. With RF = 6 and Min.ISR = 3, the system can tolerate up to 3 broker failures without data loss (assuming surviving replicas remain in-sync).</p>
                 </div>
 
 
@@ -340,10 +340,10 @@
         // --- Configuration Constants (Hardcoded after removal of UI inputs) ---
         const MIN_ISR = 3;
         const UNCLEAN_ENABLED = false; // Safe/Disabled by default
-        const RF_VALUE = 4;
+        const RF_VALUE = 6;
 
 
-        // --- Data Model & Initial State (UPDATED FOR RF=4) ---
+        // --- Data Model & Initial State (UPDATED FOR RF=6) ---
         let clusterState = {
             // KRaft Controllers (5 nodes total, Quorum required: 3)
             kraft_controllers: {
@@ -353,14 +353,14 @@
                 C4: { site: 'DC2', status: 'UP', desc: 'Controller C4 (DC2)' },
                 C5: { site: 'Site3', status: 'UP', desc: 'Controller C5 (Site 3 VM)' }, // External VM
             },
-            // Brokers (A1, A2, A3 in DC1; B1, B2, B3 in DC2) - All brokers participate in partitions
+            // Brokers (A1, A2, A3 in DC1; B1, B2, B3 in DC2)
             brokers: {
-                A1: { site: 'DC1', status: 'UP', desc: 'Broker A1 (P0 Leader, P1/P2 Follower)' }, 
-                A2: { site: 'DC1', status: 'UP', desc: 'Broker A2 (P2 Leader, P1 Follower)' },
-                A3: { site: 'DC1', status: 'UP', desc: 'Broker A3 (P0 Follower)' },
-                B1: { site: 'DC2', status: 'UP', desc: 'Broker B1 (P0/P1 Follower)' },
-                B2: { site: 'DC2', status: 'UP', desc: 'Broker B2 (P0/P2 Follower)' },
-                B3: { site: 'DC2', status: 'UP', desc: 'Broker B3 (P1 Leader, P2 Follower)' },
+                A1: { site: 'DC1', status: 'UP', desc: 'Broker A1 (P0)' }, 
+                A2: { site: 'DC1', status: 'UP', desc: 'Broker A2 (P2)' },
+                A3: { site: 'DC1', status: 'UP', desc: 'Broker A3 (Follower)' },
+                B1: { site: 'DC2', status: 'UP', desc: 'Broker B1 (P1)' },
+                B2: { site: 'DC2', status: 'UP', desc: 'Broker B2 (Follower)' },
+                B3: { site: 'DC2', status: 'UP', desc: 'Broker B3 (Follower)' },
             },
             services: {
                 DC1_CONNECT: { site: 'DC1', status: 'UP', desc: 'Connect' },
@@ -371,11 +371,11 @@
                 DC2_SR: { site: 'DC2', status: 'UP', desc: 'Schema Reg' },
                 DC2_INGRESS: { site: 'DC2', status: 'UP', desc: 'F5 VIP/Ingress' }, // New Ingress
             },
-            // Topic: SalesData (3 Partitions, Replication Factor 4, randomly distributed across 6 brokers)
+            // Topic: SalesData (3 Partitions, Replication Factor 6, spread across all 6 brokers)
             partitions: {
-                P0: { leader: 'A1', followers: ['B2', 'A3', 'B1'] }, // RF=4 (A1,B2,A3,B1)
-                P1: { leader: 'B3', followers: ['A2', 'B1', 'A1'] }, // RF=4 (B3,A2,B1,A1)
-                P2: { leader: 'A2', followers: ['B2', 'A1', 'B3'] }, // RF=4 (A2,B2,A1,B3)
+                P0: { leader: 'A1', followers: ['A2', 'A3', 'B1', 'B2', 'B3'] }, // RF=6
+                P1: { leader: 'B1', followers: ['B2', 'B3', 'A1', 'A2', 'A3'] }, // RF=6
+                P2: { leader: 'A2', followers: ['A1', 'A3', 'B1', 'B2', 'B3'] }, // RF=6
             },
             // Configuration Parameters (kept for reference, but UI removed)
             config: {
@@ -406,8 +406,6 @@
                     isrCount++;
                 }
             }
-            
-            
             return isrCount;
         }
 
@@ -739,7 +737,7 @@
                 const isSiteUnreachable = ingressStatus === 'DOWN';
                 
                 if (isSiteUnreachable) {
-                    // OVERRIDE visual status to UNAVAILABLE - F5 VIP Down = Site Down
+                    // OVERRIDE visual status to UNAVAILABLE
                     brokerStatus = 'UNAVAILABLE';
                     kraftStatus = 'UNAVAILABLE';
                     serviceStatus = 'UNAVAILABLE';
@@ -879,7 +877,7 @@
                     <div class="p-3 rounded-xl shadow-md border ${leaderBgClass} border-gray-200 min-h-[100px]">
                         <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
                         <p class="text-xs font-semibold ${leaderColorClass}">${leaderText}</p>
-                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=4): ${allReplicas}</p>
+                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=6): ${allReplicas}</p>
                     </div>
                 `;
                 container.innerHTML += card;
@@ -907,7 +905,7 @@
 
             if (dc1IngressDown) {
                 newSequence.push("--- CRITICAL ADJUSTMENT: DC1 Ingress Dependency ---");
-                newSequence.push(`- Ingress VIP DC1 is DOWN. F5 VIP Down = DC1 Site Down (Gateway SPOF).`);
+                newSequence.push(`- Ingress VIP DC1 is DOWN. KRaft assumes DC1 is internally unreachable (VIP SPOF).`);
 
                 ['C1', 'C2'].forEach(id => {
                     originalDC1Controllers[id] = clusterState.kraft_controllers[id].status;
@@ -927,7 +925,7 @@
 
             if (dc2IngressDown) {
                 newSequence.push("--- CRITICAL ADJUSTMENT: DC2 Ingress Dependency ---");
-                newSequence.push(`- Ingress VIP DC2 is DOWN. F5 VIP Down = DC2 Site Down (Gateway SPOF).`);
+                newSequence.push(`- Ingress VIP DC2 is DOWN. KRaft assumes DC2 is internally unreachable (VIP SPOF).`);
                 
                 // Force DC2 components to DOWN status for the purpose of KRaft decision-making (Leader Election)
                 ['C3', 'C4'].forEach(id => { 
@@ -962,7 +960,7 @@
                 newSequence.push("✅ Quorum Maintained! (Control plane is fully operational.)");
             }
             
-            newSequence.push(`--- Data Plane Check (RF=4, Min.ISR=${minISR}, ULE=${uncleanEnabled ? 'ON' : 'OFF'}) ---`);
+            newSequence.push(`--- Data Plane Check (RF=6, Min.ISR=${minISR}, ULE=${uncleanEnabled ? 'ON' : 'OFF'}) ---`);
 
             // Iterate over partitions to check for required leader election
             for (const [pId, pData] of Object.entries(initialState.partitions)) {
@@ -1042,13 +1040,13 @@
                 ['C1', 'C2'].forEach(id => { clusterState.kraft_controllers[id].status = originalDC1Controllers[id]; });
                 ['A1', 'A2', 'A3'].forEach(id => { clusterState.brokers[id].status = originalDC1Brokers[id]; });
                 newSequence.push(`--- DC1 Component State Restored ---`);
-                newSequence.push(`- Note: F5 VIP Down = DC1 Site Down. Brokers A1-A3 are internally UP but externally unreachable.`);
+                newSequence.push(`- Note: Brokers A1-A3 are internally UP but remain externally unreachable via Ingress VIP.`);
             }
             if (dc2IngressDown) {
                 ['C3', 'C4'].forEach(id => { clusterState.kraft_controllers[id].status = originalDC2Controllers[id]; });
                 ['B1', 'B2', 'B3'].forEach(id => { clusterState.brokers[id].status = originalDC2Brokers[id]; });
                 newSequence.push(`--- DC2 Component State Restored ---`);
-                newSequence.push(`- Note: F5 VIP Down = DC2 Site Down. Brokers B1-B3 are internally UP but externally unreachable.`);
+                newSequence.push(`- Note: Brokers B1-B3 are internally UP but remain externally unreachable via Ingress VIP.`);
             }
             return newSequence;
         }
