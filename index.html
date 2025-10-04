@@ -441,10 +441,107 @@
                 </div>
 
 
-                <!-- LAYER 2: DYNAMIC PARAMETER CONFIGURATION -->
+
+                <!-- LAYER 3: CUSTOM SCENARIO BUILDER (Site-centric Layout) -->
                 <div class="bg-white rounded-2xl border border-gray-200 space-y-4 shadow-sm p-6">
+                    <h2 class="text-xl font-bold text-gray-900">Custom Scenario Builder</h2>
+                    <p class="text-sm text-gray-600">Click components to toggle status (UP / DOWN) and define failure scenario.</p>
+                    
+                    <!-- New 3-Column Site-Centric Control Grid -->
+                    <div id="control_groups" class="grid grid-cols-3 gap-4">
+                        
+                        <!-- DC1 Controls -->
+                        <div id="dc1_controls" class="component-group-container border-t-4 border-blue-600 space-y-3">
+                            <h3 class="font-extrabold text-sm text-blue-700 border-b pb-1">DC1 Components</h3>
+                            
+                            <!-- DC1 Ingress (Gateway) -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-blue-700">Gateway (Ingress VIP)</p>
+                                <div id="dc1_ingress_top" class="control-grid-1"></div>
+                            </div>
+
+                            <!-- DC1 Controllers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">KRaft Ctrls (C1, C2)</p>
+                                <div id="dc1_controllers_container" class="control-grid-1"></div>
+                            </div>
+                            
+                            <!-- DC1 Brokers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">Kafka Brokers (A1, A2, A3)</p>
+                                <div id="dc1_brokers_container" class="control-grid-1"></div>
+                            </div>
+
+                            <!-- DC1 Services -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">Services</p>
+                                <div id="dc1_services_container" class="control-grid-1"></div>
+                            </div>
+                            <!-- New Button for DC1 All Down -->
+                            <button onclick="toggleSiteStatus('DC1', 'DOWN')" class="btn btn-danger w-full mt-2">
+                                DC1 Down All
+                            </button>
+                        </div>
+
+                        <!-- Site 3 Controls -->
+                        <div id="site3_controls" class="component-group-container border-t-4 border-gray-500 space-y-3">
+                            <h3 class="font-extrabold text-sm text-gray-700 border-b pb-1">Site 3 Components</h3>
+                            
+                            <!-- Site 3 Controllers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">KRaft Controller (C5)</p>
+                                <div id="site3_controllers_container" class="control-grid-1"></div>
+                            </div>
+                        </div>
+
+                        <!-- DC2 Controls -->
+                        <div id="dc2_controls" class="component-group-container border-t-4 border-green-600 space-y-3">
+                            <h3 class="font-extrabold text-sm text-green-700 border-b pb-1">DC2 Components</h3>
+
+                            <!-- DC2 Ingress (Gateway) -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-green-700">Gateway (Ingress VIP)</p>
+                                <div id="dc2_ingress_top" class="control-grid-1"></div>
+                            </div>
+
+                            <!-- DC2 Controllers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">KRaft Ctrls (C3, C4)</p>
+                                <div id="dc2_controllers_container" class="control-grid-1"></div>
+                            </div>
+                            
+                            <!-- DC2 Brokers -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">Kafka Brokers (B1, B2, B3)</p>
+                                <div id="dc2_brokers_container" class="control-grid-1"></div>
+                            </div>
+
+                            <!-- DC2 Services -->
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-bold text-gray-600">Services</p>
+                                <div id="dc2_services_container" class="control-grid-1"></div>
+                            </div>
+                            <!-- New Button for DC2 All Down -->
+                            <button onclick="toggleSiteStatus('DC2', 'DOWN')" class="btn btn-danger w-full mt-2">
+                                DC2 Down All
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button onclick="runScenario(5)" class="btn btn-success w-full mt-4">
+                        Restore All UP
+                    </button>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: RESULTS & LOG (COL-SPAN-7) -->
+            <div class="lg:col-span-7 space-y-6 pt-4 lg:pt-0">
+                <h2 class="text-xl font-bold text-gray-900 mb-2">Results and Failover Flow</h2>
+
+                <!-- Dynamic Parameter Configuration - MOVED HERE FOR BETTER UX -->
+                <div class="bg-white rounded-2xl border border-gray-200 space-y-4 shadow-sm p-6 mb-4">
                     <h2 class="text-xl font-bold text-gray-900">Dynamic Parameter Configuration</h2>
-                    <p class="text-sm text-gray-600">Adjust server and client parameters to see real-time impact on failover scenarios.</p>
+                    <p class="text-sm text-gray-600">Adjust server and client parameters to see real-time impact on failover scenarios. Topic has 6 partitions (P0-P5) for better load distribution and parallelism.</p>
                     
                     <!-- Server Parameters -->
                     <div class="parameter-section">
@@ -549,120 +646,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- LAYER 3: CUSTOM SCENARIO BUILDER (Site-centric Layout) -->
-                <div class="bg-white rounded-2xl border border-gray-200 space-y-4 shadow-sm p-6">
-                    <h2 class="text-xl font-bold text-gray-900">Custom Scenario Builder</h2>
-                    <p class="text-sm text-gray-600">Click components to toggle status (UP / DOWN) and define failure scenario.</p>
-                    
-                    <!-- New 3-Column Site-Centric Control Grid -->
-                    <div id="control_groups" class="grid grid-cols-3 gap-4">
-                        
-                        <!-- DC1 Controls -->
-                        <div id="dc1_controls" class="component-group-container border-t-4 border-blue-600 space-y-3">
-                            <h3 class="font-extrabold text-sm text-blue-700 border-b pb-1">DC1 Components</h3>
-                            
-                            <!-- DC1 Ingress (Gateway) -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-blue-700">Gateway (Ingress VIP)</p>
-                                <div id="dc1_ingress_top" class="control-grid-1"></div>
-                            </div>
-
-                            <!-- DC1 Controllers -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">KRaft Ctrls (C1, C2)</p>
-                                <div id="dc1_controllers_container" class="control-grid-1"></div>
-                            </div>
-                            
-                            <!-- DC1 Brokers -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">Kafka Brokers (A1, A2, A3)</p>
-                                <div id="dc1_brokers_container" class="control-grid-1"></div>
-                            </div>
-
-                            <!-- DC1 Services -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">Services</p>
-                                <div id="dc1_services_container" class="control-grid-1"></div>
-                            </div>
-                            <!-- New Button for DC1 All Down -->
-                            <button onclick="toggleSiteStatus('DC1', 'DOWN')" class="btn btn-danger w-full mt-2">
-                                DC1 Down All
-                            </button>
-                        </div>
-
-                        <!-- Site 3 Controls -->
-                        <div id="site3_controls" class="component-group-container border-t-4 border-gray-500 space-y-3">
-                            <h3 class="font-extrabold text-sm text-gray-700 border-b pb-1">Site 3 Components</h3>
-                            
-                            <!-- Site 3 Controllers -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">KRaft Controller (C5)</p>
-                                <div id="site3_controllers_container" class="control-grid-1"></div>
-                            </div>
-                        </div>
-
-                        <!-- DC2 Controls -->
-                        <div id="dc2_controls" class="component-group-container border-t-4 border-green-600 space-y-3">
-                            <h3 class="font-extrabold text-sm text-green-700 border-b pb-1">DC2 Components</h3>
-
-                            <!-- DC2 Ingress (Gateway) -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-green-700">Gateway (Ingress VIP)</p>
-                                <div id="dc2_ingress_top" class="control-grid-1"></div>
-                            </div>
-
-                            <!-- DC2 Controllers -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">KRaft Ctrls (C3, C4)</p>
-                                <div id="dc2_controllers_container" class="control-grid-1"></div>
-                            </div>
-                            
-                            <!-- DC2 Brokers -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">Kafka Brokers (B1, B2, B3)</p>
-                                <div id="dc2_brokers_container" class="control-grid-1"></div>
-                            </div>
-
-                            <!-- DC2 Services -->
-                            <div class="space-y-1">
-                                <p class="text-[10px] font-bold text-gray-600">Services</p>
-                                <div id="dc2_services_container" class="control-grid-1"></div>
-                            </div>
-                            <!-- New Button for DC2 All Down -->
-                            <button onclick="toggleSiteStatus('DC2', 'DOWN')" class="btn btn-danger w-full mt-2">
-                                DC2 Down All
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <button onclick="runScenario(5)" class="btn btn-success w-full mt-4">
-                        Restore All UP
-                    </button>
-                </div>
-            </div>
-
-            <!-- RIGHT COLUMN: RESULTS & LOG (COL-SPAN-7) -->
-            <div class="lg:col-span-7 space-y-6 pt-4 lg:pt-0">
-                <h2 class="text-xl font-bold text-gray-900 mb-2">Results and Failover Flow</h2>
-
-                <!-- Partition Configuration (RPO=0 Setup) - MOVED HERE AS REQUESTED -->
-                <div class="input-group mb-4">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Partition Configuration (RPO=0 Setup)</h3>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div class="flex items-center justify-start space-x-2">
-                            <label class="font-medium text-gray-600">Replication Factor (RF):</label>
-                            <span id="display_rf" class="font-extrabold text-gray-800">6</span>
-                            <span class="text-gray-500 text-sm">(All Brokers)</span>
-                        </div>
-                        <div class="flex items-center justify-start space-x-2">
-                            <label class="font-medium text-gray-600">Min.ISR:</label>
-                            <span id="display_min_isr" class="font-extrabold text-gray-800">3</span>
-                        </div>
-                    </div>
-                        <p class="text-xs text-gray-500 mt-2">Availability requires: ISR count ≥ Min.ISR. With RF = <span id="display_rf">6</span> and Min.ISR = <span id="display_min_isr">3</span>, the system can tolerate up to <span id="display_tolerance">3</span> broker failures without data loss (assuming surviving replicas remain in-sync).</p>
-                    <p class="text-xs text-gray-500 mt-1">Topic has 6 partitions (P0-P5) for better load distribution and parallelism.</p>
                 </div>
 
 
