@@ -1102,17 +1102,41 @@
             const allReplicas = [partition.leader, ...partition.followers];
             let isrCount = 0;
             
-            // NOTE: We check the broker's current status in clusterState, which reflects actual availability
+            // Check if VIP is down for any site - if so, brokers in that site cannot participate
+            const dc1IngressDown = clusterState.services.DC1_INGRESS.status === 'DOWN';
+            const dc2IngressDown = clusterState.services.DC2_INGRESS.status === 'DOWN';
+            
+            // Count available replicas considering VIP status
             for (const brokerId of allReplicas) {
-                if (clusterState.brokers[brokerId] && clusterState.brokers[brokerId].status === 'UP') {
-                    isrCount++;
+                const broker = clusterState.brokers[brokerId];
+                if (broker && broker.status === 'UP') {
+                    // Check if broker is in a site with down VIP
+                    const brokerSite = broker.site;
+                    const isBrokerSiteDown = (brokerSite === 'DC1' && dc1IngressDown) || 
+                                           (brokerSite === 'DC2' && dc2IngressDown);
+                    
+                    // Only count if broker is UP AND its site VIP is also UP
+                    if (!isBrokerSiteDown) {
+                        isrCount++;
+                    }
                 }
             }
             
             // AOP Logic: If AOP is enabled, we can promote async replicas to ISR
             if (AOP_VALUE > 0 && isrCount < MIN_ISR) {
-                // Calculate how many async replicas we can promote
-                const totalAvailableBrokers = Object.values(clusterState.brokers).filter(b => b.status === 'UP').length;
+                // Calculate how many async replicas we can promote (considering VIP status)
+                let totalAvailableBrokers = 0;
+                for (const [brokerId, broker] of Object.entries(clusterState.brokers)) {
+                    if (broker.status === 'UP') {
+                        const brokerSite = broker.site;
+                        const isBrokerSiteDown = (brokerSite === 'DC1' && dc1IngressDown) || 
+                                               (brokerSite === 'DC2' && dc2IngressDown);
+                        if (!isBrokerSiteDown) {
+                            totalAvailableBrokers++;
+                        }
+                    }
+                }
+                
                 const maxPossibleISR = Math.min(RF_VALUE + AOP_VALUE, totalAvailableBrokers);
                 
                 // If we have enough brokers available, we can maintain the required ISR
@@ -1122,7 +1146,18 @@
             }
             
             // Critical Check: If total available brokers < Min.ISR, all partitions should be offline
-            const totalAvailableBrokers = Object.values(clusterState.brokers).filter(b => b.status === 'UP').length;
+            let totalAvailableBrokers = 0;
+            for (const [brokerId, broker] of Object.entries(clusterState.brokers)) {
+                if (broker.status === 'UP') {
+                    const brokerSite = broker.site;
+                    const isBrokerSiteDown = (brokerSite === 'DC1' && dc1IngressDown) || 
+                                           (brokerSite === 'DC2' && dc2IngressDown);
+                    if (!isBrokerSiteDown) {
+                        totalAvailableBrokers++;
+                    }
+                }
+            }
+            
             if (totalAvailableBrokers < MIN_ISR) {
                 isrCount = Math.min(isrCount, totalAvailableBrokers);
             }
