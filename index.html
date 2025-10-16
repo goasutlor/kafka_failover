@@ -28,6 +28,39 @@
             transform: translateY(-1px);
             box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
         }
+        
+        /* Custom animations for leader changes */
+        @keyframes leaderChange {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            50% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        
+        @keyframes leaderPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .leader-change-animation {
+            animation: leaderChange 2s ease-in-out;
+        }
+        
+        .leader-pulse-animation {
+            animation: leaderPulse 1.5s ease-in-out infinite;
+        }
+        
+        .change-indicator {
+            position: relative;
+        }
+        
+        .change-indicator::before {
+            content: "🔄";
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+            animation: leaderPulse 1s ease-in-out infinite;
+        }
         .status-dot {
             width: 10px;
             height: 10px;
@@ -129,264 +162,6 @@
         .btn-danger:hover { background-color: #b91c1c; }
         .btn-success { background-color: #2563eb; border-color: #2563eb; }
         .btn-success:hover { background-color: #1d4ed8; }
-
-        /* Dynamic Parameter Configuration Styles */
-        .parameter-section {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            background: #f9fafb;
-        }
-        
-        .parameter-group {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .parameter-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        
-        .parameter-label {
-            font-weight: 600;
-            color: #374151;
-            font-size: 14px;
-        }
-        
-        .parameter-tooltip {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .tooltip-icon {
-            cursor: help;
-            color: #6b7280;
-            font-size: 12px;
-        }
-        
-        .tooltip-content {
-            visibility: hidden;
-            width: 280px;
-            background-color: #1f2937;
-            color: #fff;
-            text-align: left;
-            border-radius: 6px;
-            padding: 8px 12px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -140px;
-            font-size: 12px;
-            line-height: 1.4;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        .tooltip-content::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #1f2937 transparent transparent transparent;
-        }
-        
-        .parameter-tooltip:hover .tooltip-content {
-            visibility: visible;
-        }
-        
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 8px 0;
-        }
-        
-        .slider {
-            flex: 1;
-            height: 6px;
-            border-radius: 3px;
-            background: #ddd;
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-        
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #2563eb;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #2563eb;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .value-display {
-            background: #2563eb;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            min-width: 40px;
-            text-align: center;
-            font-size: 14px;
-        }
-        
-        .quick-presets {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        
-        .preset-btn {
-            background: #f3f4f6;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .preset-btn:hover {
-            background: #e5e7eb;
-        }
-        
-        .preset-btn.active {
-            background: #2563eb;
-            color: white;
-            border-color: #2563eb;
-        }
-        
-        .constraint-warning {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            color: #92400e;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            margin-top: 8px;
-        }
-        
-        .parameter-select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            background: white;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        
-        .custom-input-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        
-        .custom-input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
-        .apply-btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        
-        .apply-btn:hover {
-            background: #059669;
-        }
-        
-        .risk-indicator {
-            margin-top: 12px;
-            padding: 12px;
-            border-radius: 8px;
-            background: #f0f9ff;
-            border: 1px solid #0ea5e9;
-        }
-        
-        .risk-level {
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 4px;
-            display: block;
-        }
-        
-        .risk-level.high { color: #dc2626; }
-        .risk-level.medium { color: #d97706; }
-        .risk-level.low { color: #059669; }
-        
-        .risk-description {
-            font-size: 12px;
-            color: #6b7280;
-            line-height: 1.4;
-        }
-        
-        .impact-preview {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
-        }
-        
-        .impact-metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
-        }
-        
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: white;
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .metric .label {
-            font-size: 12px;
-            color: #6b7280;
-            font-weight: 500;
-        }
-        
-        .metric .value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #374151;
-        }
     </style>
 </head>
 <body class="p-4 sm:p-6 lg:p-10">
@@ -441,120 +216,34 @@
                 </div>
 
 
-                <!-- LAYER 2: DYNAMIC PARAMETER CONFIGURATION -->
-                <div class="bg-white rounded-2xl border border-gray-200 space-y-4 shadow-sm p-6">
-                    <h2 class="text-xl font-bold text-gray-900">Dynamic Parameter Configuration</h2>
-                    <p class="text-sm text-gray-600">Adjust server and client parameters to see real-time impact on failover scenarios.</p>
-                    
-                    <!-- Server Parameters -->
-                    <div class="parameter-section">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-3">Server Parameters</h3>
-                        
-                        <!-- Replication Factor -->
-                        <div class="parameter-group">
-                            <div class="parameter-header">
-                                <label class="parameter-label">Replication Factor (RF)</label>
-                                <div class="parameter-tooltip">
-                                    <span class="tooltip-icon">ℹ️</span>
-                                    <div class="tooltip-content">
-                                        Number of replicas for each partition. Higher RF provides better fault tolerance but requires more storage and network bandwidth.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="slider-container">
-                                <input type="range" id="rf-slider" min="1" max="6" value="6" 
-                                       class="slider" oninput="updateRF(this.value)">
-                                <span id="rf-value" class="value-display">6</span>
-                            </div>
-                            <div class="quick-presets">
-                                <button onclick="setRF(3)" class="preset-btn">RF=3 (Min)</button>
-                                <button onclick="setRF(6)" class="preset-btn active">RF=6 (Current)</button>
-                            </div>
-                        </div>
-
-                        <!-- Min ISR -->
-                        <div class="parameter-group">
-                            <div class="parameter-header">
-                                <label class="parameter-label">Min ISR (In-Sync Replicas)</label>
-                                <div class="parameter-tooltip">
-                                    <span class="tooltip-icon">ℹ️</span>
-                                    <div class="tooltip-content">
-                                        Minimum number of in-sync replicas required for a partition to accept writes. Must be ≤ RF.
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="slider-container">
-                                <input type="range" id="minisr-slider" min="1" max="6" value="3" 
-                                       class="slider" oninput="updateMinISR(this.value)">
-                                <span id="minisr-value" class="value-display">3</span>
-                            </div>
-                            <div class="constraint-warning" id="minisr-warning" style="display: none;">
-                                ⚠️ Min ISR cannot exceed RF
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Client Parameters -->
-                    <div class="parameter-section">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-3">Client Parameters</h3>
-                        
-                        <!-- Client Acks -->
-                        <div class="parameter-group">
-                            <div class="parameter-header">
-                                <label class="parameter-label">Client Acks</label>
-                                <div class="parameter-tooltip">
-                                    <span class="tooltip-icon">ℹ️</span>
-                                    <div class="tooltip-content">
-                                        Acknowledgment level for client writes. Controls durability vs performance trade-off.
-                                    </div>
-                                </div>
-                            </div>
-                            <select id="acks-selector" onchange="updateAcks(this.value)" class="parameter-select">
-                                <option value="all">all (All Replicas) - Default</option>
-                                <option value="1">1 (Leader Only)</option>
-                                <option value="0">0 (Fire and Forget)</option>
-                                <option value="custom">Custom (Min ISR based)</option>
-                            </select>
-                            
-                            <!-- Custom Acks Input -->
-                            <div id="custom-acks" style="display: none;" class="custom-input-group">
-                                <input type="number" id="custom-acks-value" min="1" max="6" 
-                                       placeholder="Enter custom acks value" class="custom-input">
-                                <button onclick="applyCustomAcks()" class="apply-btn">Apply</button>
-                            </div>
-                            
-                            <!-- Risk Indicator -->
-                            <div class="risk-indicator" id="acks-risk">
-                                <span class="risk-level low">🟢 Low Risk</span>
-                                <span class="risk-description">All replicas must acknowledge. Relies on Min ISR for durability.</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Impact Preview -->
-                    <div class="impact-preview">
-                        <h3 class="text-lg font-semibold text-gray-700 mb-3">Current Configuration Impact</h3>
-                        <div class="impact-metrics">
-                            <div class="metric">
-                                <span class="label">Fault Tolerance:</span>
-                                <span id="tolerance-value" class="value">3 failures</span>
-                            </div>
-                            <div class="metric">
-                                <span class="label">Write Latency:</span>
-                                <span id="latency-value" class="value">High</span>
-                            </div>
-                            <div class="metric">
-                                <span class="label">Data Safety:</span>
-                                <span id="safety-value" class="value">High</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- LAYER 3: CUSTOM SCENARIO BUILDER (Site-centric Layout) -->
+                <!-- LAYER 2: CUSTOM SCENARIO BUILDER (Site-centric Layout) -->
                 <div class="bg-white rounded-2xl border border-gray-200 space-y-4 shadow-sm p-6">
                     <h2 class="text-xl font-bold text-gray-900">Custom Scenario Builder</h2>
                     <p class="text-sm text-gray-600">Click components to toggle status (UP / DOWN) and define failure scenario.</p>
+                    
+                    <!-- Architecture Note: VIP Down = Site Down -->
+                    <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-bold text-indigo-800">Architecture Note: Centralized Gateway Model</h3>
+                                <div class="mt-2 text-xs text-indigo-700">
+                                    <p class="mb-1"><strong>In this deployment architecture:</strong></p>
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li><strong>All communication</strong> (internal pod-to-pod and external client-to-broker) routes through <strong>Egress → F5 VIP Ingress</strong></li>
+                                        <li><strong>VIP Down = Complete Site Failure</strong> - All services in that site become unreachable, even for internal communication</li>
+                                        <li>Controllers in a down-VIP site <strong>cannot participate in quorum</strong> (no network path)</li>
+                                        <li>Brokers in a down-VIP site <strong>cannot serve data or sync replicas</strong></li>
+                                    </ul>
+                                    <p class="mt-2 text-indigo-600 italic">💡 This differs from direct pod-to-pod architectures where internal communication may survive VIP failures.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- New 3-Column Site-Centric Control Grid -->
                     <div id="control_groups" class="grid grid-cols-3 gap-4">
@@ -645,31 +334,143 @@
 
             <!-- RIGHT COLUMN: RESULTS & LOG (COL-SPAN-7) -->
             <div class="lg:col-span-7 space-y-6 pt-4 lg:pt-0">
-                <h2 class="text-xl font-bold text-gray-900 mb-2">Results and Failover Flow</h2>
-
-                <!-- Partition Configuration (RPO=0 Setup) - MOVED HERE AS REQUESTED -->
-                <div class="input-group mb-4">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Partition Configuration (RPO=0 Setup)</h3>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div class="flex items-center justify-start space-x-2">
-                            <label class="font-medium text-gray-600">Replication Factor (RF):</label>
-                            <span id="display_rf" class="font-extrabold text-gray-800">6</span>
-                            <span class="text-gray-500 text-sm">(All Brokers)</span>
+                <!-- Configuration Controls and Impact - 2 Column Layout at Top -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Left Column: Adaptive Partition Configuration -->
+                    <div class="lg:col-span-1">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-3">Adaptive Partition Configuration</h3>
+                        
+                        <!-- RF Control -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Replication Factor (RF)</label>
+                            <select id="rf_selector" onchange="updateRF()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="1">RF = 1 (No Replication)</option>
+                                <option value="2">RF = 2 (Basic)</option>
+                                <option value="3">RF = 3 (Minimal)</option>
+                                <option value="4">RF = 4 (Standard)</option>
+                                <option value="5">RF = 5 (High)</option>
+                                <option value="6" selected>RF = 6 (Maximum)</option>
+                            </select>
+                            <div id="rf_impact" class="text-sm text-gray-600 mt-1"></div>
                         </div>
-                        <div class="flex items-center justify-start space-x-2">
-                            <label class="font-medium text-gray-600">Min.ISR:</label>
-                            <span id="display_min_isr" class="font-extrabold text-gray-800">3</span>
+
+                         <!-- Min ISR Control -->
+                         <div class="mb-4">
+                             <label class="block text-sm font-medium text-gray-700 mb-2">Min.ISR (Minimum In-Sync Replicas)</label>
+                             <select id="min_isr_selector" onchange="updateMinISR()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                 <option value="1">Min.ISR = 1 (Risky)</option>
+                                 <option value="2">Min.ISR = 2 (Basic)</option>
+                                 <option value="3" selected>Min.ISR = 3 (Balanced)</option>
+                                 <option value="4">Min.ISR = 4 (Safe)</option>
+                                 <option value="5">Min.ISR = 5 (Very Safe)</option>
+                                 <option value="6">Min.ISR = 6 (Maximum)</option>
+                             </select>
+                             <div id="min_isr_impact" class="text-sm text-gray-600 mt-1"></div>
+                        </div>
+
+                         <!-- AOP Control -->
+                         <div class="mb-4">
+                             <label class="block text-sm font-medium text-gray-700 mb-2">AOP (Available Out of Partition)</label>
+                             <select id="aop_selector" onchange="updateAOP()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                 <option value="0" selected>AOP = 0 (Disabled)</option>
+                                 <option value="1">AOP = 1 (1 async replica)</option>
+                                 <option value="2">AOP = 2 (2 async replicas)</option>
+                                 <option value="3">AOP = 3 (3 async replicas)</option>
+                                 <option value="4">AOP = 4 (4 async replicas)</option>
+                                 <option value="5">AOP = 5 (5 async replicas)</option>
+                             </select>
+                             <div id="aop_impact" class="text-sm text-gray-600 mt-1"></div>
+                        </div>
+
+                        <!-- Rack Awareness Toggle -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Rack Awareness</label>
+                            <div class="flex items-center space-x-3">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="rack_awareness_toggle" class="sr-only peer" onchange="toggleRackAwareness()">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    <span class="ml-3 text-sm font-medium text-gray-700">Enable Rack Awareness</span>
+                                </label>
+                            </div>
+                            <div id="rack_awareness_impact" class="text-sm text-gray-600 mt-1">🔄 Random replica distribution across all brokers</div>
                         </div>
                     </div>
-                        <p class="text-xs text-gray-500 mt-2">Availability requires: ISR count ≥ Min.ISR. With RF = <span id="display_rf">6</span> and Min.ISR = <span id="display_min_isr">3</span>, the system can tolerate up to <span id="display_tolerance">3</span> broker failures without data loss (assuming surviving replicas remain in-sync).</p>
-                    <p class="text-xs text-gray-500 mt-1">Topic has 6 partitions (P0-P5) for better load distribution and parallelism.</p>
+
+                    <!-- Right Column: Configuration Impact -->
+                    <div class="lg:col-span-1">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-3">Configuration Impact</h3>
+                        <div id="config_impact" class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                            <div class="grid grid-cols-2 gap-4 mb-3">
+                                <div>
+                                    <span class="font-medium text-blue-800">Disk Usage:</span>
+                                    <span id="disk_usage" class="text-blue-600">6x (All Brokers)</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-blue-800">Tolerable Failures:</span>
+                                    <span id="tolerable_failures" class="text-blue-600">3 brokers</span>
+                                </div>
+                </div>
+                            
+                            <!-- Performance Metrics -->
+                            <div class="grid grid-cols-2 gap-4 mb-3 pt-2 border-t border-blue-200">
+                                <div>
+                                    <span class="font-medium text-blue-800">Network Traffic:</span>
+                                    <span id="network_traffic" class="text-blue-600">High</span>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-blue-800">Storage Cost:</span>
+                                    <span id="storage_cost" class="text-blue-600">6x Base</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Risk Assessment -->
+                            <div class="pt-2 border-t border-blue-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-medium text-blue-800">Risk Level:</span>
+                                    <span id="risk_level" class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">Low</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-blue-800">Availability:</span>
+                                    <span id="availability_score" class="text-blue-600 font-bold" title="Calculated based on partition availability ratio, assuming equal traffic distribution across partitions">99.99%</span>
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 italic">
+                                    💡 Based on partition ratio (assumes equal traffic)
+                                </div>
+                            </div>
+                            
+                            <p id="config_description" class="text-blue-700 mt-3 text-xs">
+                                Availability requires: ISR count ≥ Min.ISR. With RF = 6 and Min.ISR = 3, the system can tolerate up to 3 broker failures without data loss.
+                            </p>
+                            
+                            <!-- Simulator Limitations Note -->
+                            <div class="mt-4 p-3 bg-amber-50 border-l-4 border-amber-400 rounded">
+                                <h4 class="text-xs font-bold text-amber-800 mb-1">⚠️ Simulator Limitations</h4>
+                                <div class="text-[10px] text-amber-700 space-y-1">
+                                    <p><strong>Replica Reassignment:</strong> Not simulated. In production, when brokers fail, Kafka takes <strong>minutes to hours</strong> to reassign replicas to healthy brokers (depending on data size).</p>
+                                    <p><strong>Impact:</strong> This simulator shows <em>immediate state</em> after failure. In production, you must manually trigger reassignment or wait for auto-rebalancer.</p>
+                                    <p class="italic">💡 Use Confluent Control Center or kafka-reassign-partitions tool in production.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Results and Failover Flow (Full Width Below Configuration) -->
+                <h2 class="text-xl font-bold text-gray-900 mb-2">Results and Failover Flow</h2>
+
+
+                <!-- Control Plane Status -->
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Control Plane Status</h3>
+                    <div id="control_plane_status" class="p-4 rounded-lg border">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
 
                 <!-- Partition Status -->
                 <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Partition Leader/Follower Status</h3>
-                    <div id="partition_status" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Partition Data Availability</h3>
+                    <div id="partition_status" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Rendered by JS -->
                     </div>
                 </div>
@@ -705,14 +506,15 @@
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // --- Dynamic Configuration Variables ---
+        // --- Configuration Constants (Now Dynamic) ---
         let MIN_ISR = 3;
-        let UNCLEAN_ENABLED = false; // Safe/Disabled by default
+        const UNCLEAN_ENABLED = false; // Safe/Disabled by default
         let RF_VALUE = 6;
-        let CLIENT_ACKS = 'all'; // Default to 'all'
+        let AOP_VALUE = 0; // Available Out of Partition (default: 0 = disabled)
+        let RACK_AWARENESS_ENABLED = false; // Rack Awareness toggle
 
 
-        // --- Data Model & Initial State (UPDATED FOR RF=6) ---
+        // --- Data Model & Initial State (Dynamic RF Support) ---
         let clusterState = {
             // KRaft Controllers (5 nodes total, Quorum required: 3)
             kraft_controllers: {
@@ -724,12 +526,12 @@
             },
             // Brokers (A1, A2, A3 in DC1; B1, B2, B3 in DC2)
             brokers: {
-                A1: { site: 'DC1', status: 'UP', desc: 'Broker A1 (P0)' }, 
-                A2: { site: 'DC1', status: 'UP', desc: 'Broker A2 (P2)' },
-                A3: { site: 'DC1', status: 'UP', desc: 'Broker A3 (Follower)' },
-                B1: { site: 'DC2', status: 'UP', desc: 'Broker B1 (P1)' },
-                B2: { site: 'DC2', status: 'UP', desc: 'Broker B2 (Follower)' },
-                B3: { site: 'DC2', status: 'UP', desc: 'Broker B3 (Follower)' },
+                A1: { site: 'DC1', status: 'UP', desc: 'Broker A1' }, 
+                A2: { site: 'DC1', status: 'UP', desc: 'Broker A2' },
+                A3: { site: 'DC1', status: 'UP', desc: 'Broker A3' },
+                B1: { site: 'DC2', status: 'UP', desc: 'Broker B1' },
+                B2: { site: 'DC2', status: 'UP', desc: 'Broker B2' },
+                B3: { site: 'DC2', status: 'UP', desc: 'Broker B3' },
             },
             services: {
                 DC1_CONNECT: { site: 'DC1', status: 'UP', desc: 'Connect' },
@@ -740,19 +542,17 @@
                 DC2_SR: { site: 'DC2', status: 'UP', desc: 'Schema Reg' },
                 DC2_INGRESS: { site: 'DC2', status: 'UP', desc: 'F5 VIP/Ingress' }, // New Ingress
             },
-            // Topic: SalesData (6 Partitions, Replication Factor 6, spread across all 6 brokers)
+            // Topic: SalesData (3 Partitions, Dynamic Replication Factor)
             partitions: {
-                P0: { leader: 'A1', followers: ['A2', 'A3', 'B1', 'B2', 'B3'] }, // RF=6
-                P1: { leader: 'B1', followers: ['B2', 'B3', 'A1', 'A2', 'A3'] }, // RF=6
-                P2: { leader: 'A2', followers: ['A1', 'A3', 'B1', 'B2', 'B3'] }, // RF=6
-                P3: { leader: 'B2', followers: ['B1', 'B3', 'A1', 'A2', 'A3'] }, // RF=6
-                P4: { leader: 'A3', followers: ['A1', 'A2', 'B1', 'B2', 'B3'] }, // RF=6
-                P5: { leader: 'B3', followers: ['B1', 'B2', 'A1', 'A2', 'A3'] }, // RF=6
+                P0: { leader: 'A1', followers: ['A2', 'A3', 'B1', 'B2', 'B3'], uleUsed: false }, // Will be updated dynamically
+                P1: { leader: 'B1', followers: ['B2', 'B3', 'A1', 'A2', 'A3'], uleUsed: false }, // Will be updated dynamically
+                P2: { leader: 'A2', followers: ['A1', 'A3', 'B1', 'B2', 'B3'], uleUsed: false }, // Will be updated dynamically
             },
-            // Configuration Parameters (kept for reference, but UI removed)
+            // Configuration Parameters (Dynamic)
             config: {
                 RF: RF_VALUE, 
-                minISR: MIN_ISR 
+                minISR: MIN_ISR,
+                AOP: AOP_VALUE
             }
         };
 
@@ -762,24 +562,571 @@
         // Deep copy of the initial state for clean resets
         const initialState = JSON.parse(JSON.stringify(clusterState));
 
+        // --- Dynamic Configuration Functions ---
+
+        /**
+         * Updates RF value and recalculates partition assignments
+         */
+        window.updateRF = function() {
+            const rfSelect = document.getElementById('rf_selector');
+            RF_VALUE = parseInt(rfSelect.value);
+            
+            // Update cluster state config
+            clusterState.config.RF = RF_VALUE;
+            
+            // Recalculate partition assignments
+            recalculatePartitionAssignments();
+            
+            // Update UI displays
+            updateConfigImpact();
+            
+            // Update AOP selector options
+            updateAOPOptions();
+            
+            // Update Min ISR selector options
+            const minIsrSelector = document.getElementById('min_isr_selector');
+            minIsrSelector.innerHTML = '';
+            
+            for (let i = 1; i <= RF_VALUE; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                let label = `Min.ISR = ${i}`;
+                if (i === 1) label += ' (Risky)';
+                else if (i === 2) label += ' (Basic)';
+                else if (i === 3) label += ' (Balanced)';
+                else if (i === 4) label += ' (Safe)';
+                else if (i === 5) label += ' (Very Safe)';
+                else if (i === 6) label += ' (Maximum)';
+                
+                option.textContent = label;
+                if (i === MIN_ISR) option.selected = true;
+                minIsrSelector.appendChild(option);
+            }
+            
+            // Ensure Min ISR doesn't exceed RF
+            if (MIN_ISR > RF_VALUE) {
+                MIN_ISR = RF_VALUE;
+                minIsrSelector.value = RF_VALUE;
+            }
+            
+            // Validate Min.ISR configuration after RF change
+            validateMinISRConfiguration();
+            validateAOPConfiguration();
+            
+            // Re-run simulation if needed
+            if (typeof runSimulation === 'function') {
+                setTimeout(() => {
+                    runSimulation();
+                    setTimeout(renderClientImpact, 100);
+                }, 0);
+            }
+        }
+
+        /**
+         * Toggles Rack Awareness setting
+         */
+        window.toggleRackAwareness = function() {
+            const toggle = document.getElementById('rack_awareness_toggle');
+            RACK_AWARENESS_ENABLED = toggle.checked;
+            
+            // Update impact display
+            updateRackAwarenessImpact();
+            
+            // Recalculate partition assignments with new rack awareness setting
+            recalculatePartitionAssignments();
+            
+            // Re-run simulation if needed
+            if (typeof runSimulation === 'function') {
+                setTimeout(() => {
+                    runSimulation();
+                    setTimeout(renderClientImpact, 100);
+                }, 0);
+            }
+        }
+
+        /**
+         * Updates Rack Awareness impact display
+         */
+        function updateRackAwarenessImpact() {
+            const impactElement = document.getElementById('rack_awareness_impact');
+            if (RACK_AWARENESS_ENABLED) {
+                impactElement.innerHTML = `
+                    <div class="text-sm text-blue-600 mt-1">
+                        🏢 <strong>Balanced replica distribution</strong> across DC1/DC2 sites<br>
+                        <span class="text-xs text-gray-600">
+                            • Alternating pattern per partition (P0: DC1=${Math.ceil(RF_VALUE/2)}/DC2=${Math.floor(RF_VALUE/2)}, P1: DC1=${Math.floor(RF_VALUE/2)}/DC2=${Math.ceil(RF_VALUE/2)})<br>
+                            • Ensures equal risk distribution across both datacenters
+                        </span>
+                    </div>
+                `;
+                impactElement.className = 'text-sm mt-1';
+            } else {
+                impactElement.innerHTML = '🔄 Random replica distribution across all brokers';
+                impactElement.className = 'text-sm text-gray-600 mt-1';
+            }
+        }
+
+        /**
+         * Updates AOP selector options based on current RF
+         */
+        function updateAOPOptions() {
+            const aopSelector = document.getElementById('aop_selector');
+            if (!aopSelector) return;
+            
+            const maxAOP = 6 - RF_VALUE; // Guardrail: RF + AOP <= 6
+            
+            aopSelector.innerHTML = '';
+            
+            // Always include option 0 (disabled)
+            const option0 = document.createElement('option');
+            option0.value = '0';
+            option0.textContent = 'AOP = 0 (Disabled)';
+            if (AOP_VALUE === 0) option0.selected = true;
+            aopSelector.appendChild(option0);
+            
+            // Add AOP options based on available brokers
+            for (let i = 1; i <= maxAOP; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `AOP = ${i} (${i} async replica${i > 1 ? 's' : ''})`;
+                if (i === AOP_VALUE) option.selected = true;
+                aopSelector.appendChild(option);
+            }
+            
+            // If current AOP exceeds max, reset to 0
+            if (AOP_VALUE > maxAOP) {
+                AOP_VALUE = 0;
+                clusterState.config.AOP = AOP_VALUE;
+                aopSelector.value = '0';
+            }
+        }
+
+        /**
+         * Validates AOP configuration and shows warnings
+         */
+        function validateAOPConfiguration() {
+            const aopImpact = document.getElementById('aop_impact');
+            if (!aopImpact) return;
+            
+            if (AOP_VALUE === 0) {
+                aopImpact.innerHTML = `
+                    <div class="text-sm text-blue-600 mt-1">
+                        🔧 <strong>Traditional Kafka:</strong> All replicas replicate synchronously<br>
+                        <span class="text-xs text-gray-600">
+                            • Write operations wait for all replicas to confirm<br>
+                            • Maximum data safety but slower write performance
+                        </span>
+                    </div>
+                `;
+                aopImpact.className = 'text-sm mt-1';
+            } else {
+                const totalReplicas = RF_VALUE + AOP_VALUE;
+                const syncReplicas = RF_VALUE;
+                const asyncReplicas = AOP_VALUE;
+                
+                aopImpact.innerHTML = `
+                    <div class="text-sm text-green-600 mt-1">
+                        ⚡ <strong>AOP Enabled:</strong> ${syncReplicas} sync + ${asyncReplicas} async replicas (Total: ${totalReplicas})<br>
+                        <span class="text-xs text-gray-600">
+                            • Write operations wait for ${syncReplicas} replicas only<br>
+                            • ${asyncReplicas} replicas replicate asynchronously<br>
+                            • Better write performance with maintained durability
+                        </span>
+                    </div>
+                `;
+                aopImpact.className = 'text-sm mt-1';
+            }
+        }
+
+        /**
+         * Updates AOP value
+         */
+        window.updateAOP = function() {
+            const aopSelector = document.getElementById('aop_selector');
+            const newAOP = parseInt(aopSelector.value);
+            
+            // Guardrail: RF + AOP <= Total Brokers (6)
+            if (RF_VALUE + newAOP > 6) {
+                alert(`Invalid AOP configuration!\nRF (${RF_VALUE}) + AOP (${newAOP}) = ${RF_VALUE + newAOP} > Total Brokers (6)\nMaximum allowed AOP = ${6 - RF_VALUE}`);
+                aopSelector.value = AOP_VALUE; // Reset to previous value
+                return;
+            }
+            
+            AOP_VALUE = newAOP;
+            
+            // Update cluster state config
+            clusterState.config.AOP = AOP_VALUE;
+            
+            // Update UI displays
+            updateConfigImpact();
+            updateAOPOptions();
+            validateAOPConfiguration();
+            
+            // Recalculate partition assignments
+            recalculatePartitionAssignments();
+            
+            // Force render client impact after config update
+            setTimeout(() => {
+                renderControlPlaneStatus();
+                renderClientImpact();
+                renderPartitionStatus();
+            }, 50);
+        }
+
+        /**
+         * Updates Min ISR value
+         */
+        window.updateMinISR = function() {
+            const minIsrSelector = document.getElementById('min_isr_selector');
+            MIN_ISR = parseInt(minIsrSelector.value);
+            
+            // Update cluster state config
+            clusterState.config.minISR = MIN_ISR;
+            
+            // Validate Min.ISR and show warnings
+            validateMinISRConfiguration();
+            
+            // Update impact display
+            updateConfigImpact();
+            
+            // Re-run simulation if needed
+            if (typeof runSimulation === 'function') {
+                setTimeout(() => {
+                    runSimulation();
+                    setTimeout(renderClientImpact, 100);
+                }, 0);
+            }
+        }
+        
+        /**
+         * Validates Min.ISR configuration and displays warnings for anti-patterns
+         */
+        function validateMinISRConfiguration() {
+            const minIsrImpact = document.getElementById('min_isr_impact');
+            if (!minIsrImpact) return;
+            
+            // Critical Anti-Pattern: Min.ISR = RF
+            if (MIN_ISR === RF_VALUE) {
+                minIsrImpact.innerHTML = `
+                    <div class="mt-2 p-3 bg-red-50 border-l-4 border-red-500 rounded">
+                        <div class="flex items-start">
+                            <span class="text-red-600 font-bold mr-2">⚠️ ANTI-PATTERN WARNING:</span>
+                        </div>
+                        <div class="text-xs text-red-700 mt-1">
+                            <strong>Min.ISR = RF is NOT recommended for production!</strong><br>
+                            • If ANY single replica falls out of sync → partition immediately goes OFFLINE<br>
+                            • Zero fault tolerance - extremely fragile configuration<br>
+                            • <strong>Best Practice:</strong> Min.ISR ≤ (RF/2 + 1) for RF=${RF_VALUE} → Min.ISR = ${Math.ceil(RF_VALUE/2 + 1)} recommended
+                        </div>
+                    </div>
+                `;
+                minIsrImpact.className = 'text-sm mt-1';
+            } 
+            // Warning: Min.ISR too high (> 80% of RF)
+            else if (MIN_ISR > RF_VALUE * 0.8) {
+                minIsrImpact.innerHTML = `
+                    <div class="mt-2 p-3 bg-orange-50 border-l-4 border-orange-400 rounded">
+                        <div class="flex items-start">
+                            <span class="text-orange-600 font-bold mr-2">⚠️ CAUTION:</span>
+                        </div>
+                        <div class="text-xs text-orange-700 mt-1">
+                            <strong>Min.ISR is very high (${MIN_ISR}/${RF_VALUE} = ${Math.round(MIN_ISR/RF_VALUE*100)}%)</strong><br>
+                            • Low tolerance for replica lag → higher risk of partition unavailability<br>
+                            • Consider: Min.ISR = ${Math.ceil(RF_VALUE/2 + 1)} for better balance between safety and availability
+                        </div>
+                    </div>
+                `;
+                minIsrImpact.className = 'text-sm mt-1';
+            }
+            // Good configuration
+            else {
+                minIsrImpact.innerHTML = '';
+            }
+        }
+
+        /**
+         * Recalculates partition replica assignments based on current RF
+         */
+        function recalculatePartitionAssignments() {
+            const allBrokers = Object.keys(clusterState.brokers);
+            const brokerCount = allBrokers.length;
+            
+            // Separate brokers by site for rack awareness
+            const dc1Brokers = allBrokers.filter(id => clusterState.brokers[id].site === 'DC1');
+            const dc2Brokers = allBrokers.filter(id => clusterState.brokers[id].site === 'DC2');
+            
+            // For each partition, assign replicas based on RF and rack awareness setting
+            Object.keys(clusterState.partitions).forEach((partitionId, index) => {
+                const partition = clusterState.partitions[partitionId];
+                const replicas = [];
+                
+                if (RACK_AWARENESS_ENABLED) {
+                    // Rack-aware distribution: alternate DC1/DC2 per partition for balanced risk
+                    // P0: DC1=ceil(RF/2), DC2=floor(RF/2)
+                    // P1: DC1=floor(RF/2), DC2=ceil(RF/2) 
+                    // P2: DC1=ceil(RF/2), DC2=floor(RF/2) ... and so on
+                    
+                    let dc1Count, dc2Count;
+                    if (index % 2 === 0) {
+                        // Even partition index: favor DC1
+                        dc1Count = Math.ceil(RF_VALUE / 2);
+                        dc2Count = Math.floor(RF_VALUE / 2);
+                    } else {
+                        // Odd partition index: favor DC2
+                        dc1Count = Math.floor(RF_VALUE / 2);
+                        dc2Count = Math.ceil(RF_VALUE / 2);
+                    }
+                    
+                    // Add DC1 brokers (avoid duplicates)
+                    for (let i = 0; i < dc1Count && i < dc1Brokers.length && replicas.length < RF_VALUE; i++) {
+                        const brokerIndex = (index + i) % dc1Brokers.length;
+                        const brokerId = dc1Brokers[brokerIndex];
+                        if (!replicas.includes(brokerId)) {
+                            replicas.push(brokerId);
+                        }
+                    }
+                    
+                    // Add DC2 brokers (avoid duplicates)
+                    for (let i = 0; i < dc2Count && i < dc2Brokers.length && replicas.length < RF_VALUE; i++) {
+                        const brokerIndex = (index + i) % dc2Brokers.length;
+                        const brokerId = dc2Brokers[brokerIndex];
+                        if (!replicas.includes(brokerId)) {
+                            replicas.push(brokerId);
+                        }
+                    }
+                    
+                    // Fill remaining slots with available brokers if needed
+                    while (replicas.length < RF_VALUE && replicas.length < brokerCount) {
+                        const remainingBrokers = allBrokers.filter(id => !replicas.includes(id));
+                        if (remainingBrokers.length > 0) {
+                            const brokerIndex = (index + replicas.length) % remainingBrokers.length;
+                            replicas.push(remainingBrokers[brokerIndex]);
+                        } else {
+                            break;
+                        }
+                    }
+                } else {
+                    // Random/Round-robin distribution across all brokers
+                    for (let i = 0; i < RF_VALUE && i < brokerCount; i++) {
+                        const brokerIndex = (index * RF_VALUE + i) % brokerCount;
+                        replicas.push(allBrokers[brokerIndex]);
+                    }
+                }
+                
+                // Set leader (first replica) and followers (rest)
+                partition.leader = replicas[0];
+                partition.followers = replicas.slice(1);
+                partition.uleUsed = false; // Reset ULE flag
+            });
+            
+            // Also update the initialState for proper comparison
+            Object.keys(initialState.partitions).forEach((partitionId, index) => {
+                const partition = initialState.partitions[partitionId];
+                const replicas = [];
+                
+                if (RACK_AWARENESS_ENABLED) {
+                    // Rack-aware distribution for initialState (same alternating pattern)
+                    let dc1Count, dc2Count;
+                    if (index % 2 === 0) {
+                        dc1Count = Math.ceil(RF_VALUE / 2);
+                        dc2Count = Math.floor(RF_VALUE / 2);
+                    } else {
+                        dc1Count = Math.floor(RF_VALUE / 2);
+                        dc2Count = Math.ceil(RF_VALUE / 2);
+                    }
+                    
+                    // Add DC1 brokers (avoid duplicates)
+                    for (let i = 0; i < dc1Count && i < dc1Brokers.length && replicas.length < RF_VALUE; i++) {
+                        const brokerIndex = (index + i) % dc1Brokers.length;
+                        const brokerId = dc1Brokers[brokerIndex];
+                        if (!replicas.includes(brokerId)) {
+                            replicas.push(brokerId);
+                        }
+                    }
+                    
+                    // Add DC2 brokers (avoid duplicates)
+                    for (let i = 0; i < dc2Count && i < dc2Brokers.length && replicas.length < RF_VALUE; i++) {
+                        const brokerIndex = (index + i) % dc2Brokers.length;
+                        const brokerId = dc2Brokers[brokerIndex];
+                        if (!replicas.includes(brokerId)) {
+                            replicas.push(brokerId);
+                        }
+                    }
+                    
+                    // Fill remaining slots with available brokers if needed
+                    while (replicas.length < RF_VALUE && replicas.length < brokerCount) {
+                        const remainingBrokers = allBrokers.filter(id => !replicas.includes(id));
+                        if (remainingBrokers.length > 0) {
+                            const brokerIndex = (index + replicas.length) % remainingBrokers.length;
+                            replicas.push(remainingBrokers[brokerIndex]);
+                        } else {
+                            break;
+                        }
+                    }
+                } else {
+                    // Random/Round-robin distribution for initialState
+                    for (let i = 0; i < RF_VALUE && i < brokerCount; i++) {
+                        const brokerIndex = (index * RF_VALUE + i) % brokerCount;
+                        replicas.push(allBrokers[brokerIndex]);
+                    }
+                }
+                
+                // Set leader (first replica) and followers (rest)
+                partition.leader = replicas[0];
+                partition.followers = replicas.slice(1);
+                partition.uleUsed = false; // Reset ULE flag
+            });
+        }
+
+        /**
+         * Updates the configuration impact display
+         */
+        function updateConfigImpact() {
+            const diskUsage = document.getElementById('disk_usage');
+            const tolerableFailures = document.getElementById('tolerable_failures');
+            const configDescription = document.getElementById('config_description');
+            const rfImpact = document.getElementById('rf_impact');
+            const minIsrImpact = document.getElementById('min_isr_impact');
+            const networkTraffic = document.getElementById('network_traffic');
+            const storageCost = document.getElementById('storage_cost');
+            const riskLevel = document.getElementById('risk_level');
+            const availabilityScore = document.getElementById('availability_score');
+            
+            // Calculate disk usage
+            const diskMultiplier = RF_VALUE;
+            diskUsage.textContent = `${diskMultiplier}x (${RF_VALUE} Brokers)`;
+            
+            // Calculate tolerable failures
+            const maxFailures = RF_VALUE - MIN_ISR;
+            tolerableFailures.textContent = `${maxFailures} brokers`;
+            
+            // Update description
+            configDescription.textContent = 
+                `Availability requires: ISR count ≥ Min.ISR. With RF = ${RF_VALUE} and Min.ISR = ${MIN_ISR}, the system can tolerate up to ${maxFailures} broker failures without data loss.`;
+            
+            // Update RF impact indicator
+            let rfImpactText = '';
+            if (RF_VALUE === 1) {
+                rfImpactText = '💾 Minimal disk usage, ❌ No fault tolerance';
+            } else if (RF_VALUE === 2) {
+                rfImpactText = '💾 Low disk usage, ⚠️ Basic fault tolerance';
+            } else if (RF_VALUE === 3) {
+                rfImpactText = '💾 Low disk usage, ⚠️ Limited fault tolerance';
+            } else if (RF_VALUE === 4) {
+                rfImpactText = '💾 Medium disk usage, ✅ Good fault tolerance';
+            } else if (RF_VALUE === 5) {
+                rfImpactText = '💾 High disk usage, ✅ Very good fault tolerance';
+            } else if (RF_VALUE === 6) {
+                rfImpactText = '💾 Maximum disk usage, 🛡️ Maximum fault tolerance';
+            }
+            rfImpact.textContent = rfImpactText;
+            
+            // Update Min ISR impact indicator
+            let minIsrImpactText = '';
+            if (MIN_ISR === 1) {
+                minIsrImpactText = '⚡ Fast writes, ⚠️ Risk of data loss';
+            } else if (MIN_ISR === 2) {
+                minIsrImpactText = '⚡ Good performance, ⚠️ Some risk';
+            } else if (MIN_ISR === 3) {
+                minIsrImpactText = '⚖️ Balanced performance & safety';
+            } else if (MIN_ISR === 4) {
+                minIsrImpactText = '🛡️ High safety, ⚠️ Slower writes';
+            } else if (MIN_ISR === 5) {
+                minIsrImpactText = '🛡️ Very safe, ⚠️ Slow writes';
+            } else if (MIN_ISR === 6) {
+                minIsrImpactText = '🛡️ Maximum safety, ⚠️ Very slow writes';
+            }
+            minIsrImpact.textContent = minIsrImpactText;
+            
+            // Update network and storage impact
+            let networkTrafficText = '';
+            if (RF_VALUE <= 2) {
+                networkTrafficText = 'Low';
+            } else if (RF_VALUE <= 4) {
+                networkTrafficText = 'Medium';
+            } else {
+                networkTrafficText = 'High';
+            }
+            networkTraffic.textContent = networkTrafficText;
+            
+            storageCost.textContent = `${diskMultiplier}x Base`;
+            
+            // Calculate risk level and availability
+            let riskLevelText = '';
+            let riskLevelClass = '';
+            let availability = '';
+            
+            if (MIN_ISR === 1) {
+                riskLevelText = 'High';
+                riskLevelClass = 'bg-red-100 text-red-800';
+                availability = '99.0%';
+            } else if (MIN_ISR === 2) {
+                riskLevelText = 'Medium';
+                riskLevelClass = 'bg-yellow-100 text-yellow-800';
+                availability = '99.5%';
+            } else if (MIN_ISR === 3) {
+                riskLevelText = 'Low';
+                riskLevelClass = 'bg-green-100 text-green-800';
+                availability = '99.9%';
+            } else if (MIN_ISR >= 4) {
+                riskLevelText = 'Very Low';
+                riskLevelClass = 'bg-green-100 text-green-800';
+                availability = '99.99%';
+            }
+            
+            riskLevel.textContent = riskLevelText;
+            riskLevel.className = `px-2 py-1 rounded-full text-xs font-bold ${riskLevelClass}`;
+            availabilityScore.textContent = availability;
+            
+            // Recalculate partition assignments when RF changes
+            recalculatePartitionAssignments();
+            
+            // Update rack awareness impact display
+            updateRackAwarenessImpact();
+            
+            // Force render client impact after config update
+            setTimeout(() => {
+                renderControlPlaneStatus();
+                renderClientImpact();
+                renderPartitionStatus();
+            }, 50);
+        }
+
         // --- Utility Functions ---
 
         /**
-         * Counts the number of UP replicas for a given partition (ISR Count).
-         * In Kafka, ISR (In-Sync Replicas) are replicas that are caught up with the leader.
-         * For simulation purposes, we consider UP brokers as ISR members.
+         * Counts the number of UP replicas for a given partition.
          */
         function getISRCount(partitionId) {
             const partition = clusterState.partitions[partitionId];
             const allReplicas = [partition.leader, ...partition.followers];
             let isrCount = 0;
             
-            // Check each replica's status - only UP brokers are considered ISR
+            // NOTE: We check the broker's current status in clusterState, which reflects actual availability
             for (const brokerId of allReplicas) {
                 if (clusterState.brokers[brokerId] && clusterState.brokers[brokerId].status === 'UP') {
                     isrCount++;
                 }
             }
+            
+            // AOP Logic: If AOP is enabled, we can promote async replicas to ISR
+            if (AOP_VALUE > 0 && isrCount < MIN_ISR) {
+                // Calculate how many async replicas we can promote
+                const totalAvailableBrokers = Object.values(clusterState.brokers).filter(b => b.status === 'UP').length;
+                const maxPossibleISR = Math.min(RF_VALUE + AOP_VALUE, totalAvailableBrokers);
+                
+                // If we have enough brokers available, we can maintain the required ISR
+                if (maxPossibleISR >= MIN_ISR) {
+                    isrCount = Math.max(isrCount, MIN_ISR);
+                }
+            }
+            
+            // Critical Check: If total available brokers < Min.ISR, all partitions should be offline
+            const totalAvailableBrokers = Object.values(clusterState.brokers).filter(b => b.status === 'UP').length;
+            if (totalAvailableBrokers < MIN_ISR) {
+                isrCount = Math.min(isrCount, totalAvailableBrokers);
+            }
+            
             return isrCount;
         }
 
@@ -788,43 +1135,40 @@
          */
         function checkQuorum() {
             const upControllers = Object.values(clusterState.kraft_controllers).filter(c => c.status === 'UP').length;
-            const quorumMaintained = upControllers >= QUORUM_REQUIRED;
+            
+            // Check if VIPs are down - if so, controllers cannot communicate
+            const bothIngressDown = 
+                clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                clusterState.services.DC2_INGRESS.status === 'DOWN';
+            
+            // If both VIPs are down, controllers cannot communicate even if they are UP
+            let quorumMaintained = false;
+            if (bothIngressDown) {
+                console.log('Both VIPs are DOWN - controllers cannot communicate, quorum lost');
+                quorumMaintained = false;
+            } else {
+                quorumMaintained = upControllers >= QUORUM_REQUIRED;
+            }
+            
             return { upControllers, quorumMaintained };
         }
 
         /**
          * Finds a healthy follower for a given partition that can be elected as the new leader.
-         * In Kafka, leader election follows these rules:
-         * 1. Only ISR (In-Sync Replicas) can be elected as leader
-         * 2. If no ISR available and unclean.leader.election.enable=true, any replica can be elected
-         * 3. If unclean.leader.election.enable=false, partition becomes unavailable
          */
         function findNewLeader(partitionId) {
-            const partition = initialState.partitions[partitionId]; // Use initial followers list
+            const partition = clusterState.partitions[partitionId]; // Use current followers list
             const currentLeader = clusterState.partitions[partitionId].leader;
             const allReplicas = [currentLeader, ...partition.followers];
             
-            // First, try to find an ISR member (UP broker) that's not the current leader
+            // Prioritize a replica that is UP and not the current leader (must be ISR/UP to be considered)
             for (const brokerId of allReplicas) {
-                if (brokerId !== currentLeader && 
-                    clusterState.brokers[brokerId] && 
-                    clusterState.brokers[brokerId].status === 'UP') {
-                    return brokerId; // Found a healthy ISR member
+                // Check if the broker is internally UP
+                if (brokerId !== currentLeader && clusterState.brokers[brokerId] && clusterState.brokers[brokerId].status === 'UP') {
+                    return brokerId;
                 }
             }
-            
-            // If no ISR available and unclean election is enabled, find any UP replica
-            if (UNCLEAN_ENABLED) {
-                for (const brokerId of allReplicas) {
-                    if (brokerId !== currentLeader && 
-                        clusterState.brokers[brokerId] && 
-                        clusterState.brokers[brokerId].status === 'UP') {
-                        return brokerId; // Unclean election candidate
-                    }
-                }
-            }
-            
-            return null; // No suitable leader found
+            return null; 
         }
         
         /**
@@ -964,37 +1308,31 @@
             let failedFound = false;
             
             // 1. Controllers
-            Object.keys(initialState.kraft_controllers).forEach(id => {
-                if (clusterState.kraft_controllers[id].status !== initialState.kraft_controllers[id].status) { // Check against initial state
-                    if (clusterState.kraft_controllers[id].status === 'DOWN') {
-                        summary.push(`- KRaft Controller ${id} (${clusterState.kraft_controllers[id].site}) was manually stopped.`);
-                        failedFound = true;
-                    }
+            Object.keys(clusterState.kraft_controllers).forEach(id => {
+                if (clusterState.kraft_controllers[id].status === 'DOWN') {
+                    summary.push(`- KRaft Controller ${id} (${clusterState.kraft_controllers[id].site}) was manually stopped.`);
+                    failedFound = true;
                 }
             });
 
             // 2. Brokers
-             Object.keys(initialState.brokers).forEach(id => {
-                if (clusterState.brokers[id].status !== initialState.brokers[id].status) {
-                    if (clusterState.brokers[id].status === 'DOWN') {
-                        summary.push(`- Kafka Broker ${id} (${clusterState.brokers[id].site}) was manually stopped.`);
-                        failedFound = true;
-                    }
+            Object.keys(clusterState.brokers).forEach(id => {
+                if (clusterState.brokers[id].status === 'DOWN') {
+                    summary.push(`- Kafka Broker ${id} (${clusterState.brokers[id].site}) was manually stopped.`);
+                    failedFound = true;
                 }
             });
             
             // 3. Services (including Ingress)
-            Object.keys(initialState.services).forEach(id => {
-                if (clusterState.services[id].status !== initialState.services[id].status) {
-                    if (clusterState.services[id].status === 'DOWN') {
-                        summary.push(`- Service ${initialState.services[id].desc} (${initialState.services[id].site}) was manually stopped.`);
-                        failedFound = true;
-                    }
+            Object.keys(clusterState.services).forEach(id => {
+                if (clusterState.services[id].status === 'DOWN') {
+                    summary.push(`- Service ${clusterState.services[id].desc} (${clusterState.services[id].site}) was manually stopped.`);
+                    failedFound = true;
                 }
             });
 
             if (!failedFound) {
-                summary.push("- No new components were manually stopped since last run. Running full check.");
+                summary.push("- No components were manually stopped.");
             }
             
             return summary;
@@ -1062,7 +1400,115 @@
                     dc2_svc.innerHTML += generateControlHtml(id, initialState.services[id].desc, initialState.services[id].status === 'UP', 'svc');
                 });
             
+            // Force render client impact after UI is built
+            setTimeout(() => {
+                renderClientImpact();
+            }, 50);
+            
             // NOTE: Min.ISR input removed from UI
+        }
+
+        /**
+         * Calculates actual risk level based on current cluster status
+         */
+        function calculateActualRiskLevel() {
+            const { quorumMaintained } = checkQuorum();
+            const minISR = MIN_ISR;
+            let partitionsOffline = 0;
+            
+            // Count offline partitions
+            for (const [pId, pData] of Object.entries(clusterState.partitions)) {
+                const isrCount = getISRCount(pId);
+                const isAvailable = isrCount >= minISR;
+                
+                if (!isAvailable) {
+                    partitionsOffline++;
+                }
+            }
+            
+            // Check if all ingress VIPs are down
+            const bothIngressDown = 
+                clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                clusterState.services.DC2_INGRESS.status === 'DOWN';
+            
+            if (bothIngressDown) {
+                return { level: 'Critical', class: 'bg-red-100 text-red-800' };
+            }
+            
+            if (!quorumMaintained) {
+                return { level: 'High', class: 'bg-red-100 text-red-800' };
+            }
+            
+            if (partitionsOffline === 0) {
+                return { level: 'Low', class: 'bg-green-100 text-green-800' };
+            } else if (partitionsOffline === 1) {
+                return { level: 'Medium', class: 'bg-yellow-100 text-yellow-800' };
+            } else if (partitionsOffline === 2) {
+                return { level: 'High', class: 'bg-orange-100 text-orange-800' };
+            } else {
+                return { level: 'Critical', class: 'bg-red-100 text-red-800' };
+            }
+        }
+
+        /**
+         * Calculates actual availability based on current cluster status
+         * Uses partition availability ratio for realistic production scenarios
+         */
+        function calculateActualAvailability() {
+            const { quorumMaintained } = checkQuorum();
+            const minISR = MIN_ISR;
+            let partitionsOnline = 0;
+            let totalPartitions = 0;
+            
+            // Count online/offline partitions
+            for (const [pId, pData] of Object.entries(clusterState.partitions)) {
+                totalPartitions++;
+                const isrCount = getISRCount(pId);
+                const isAvailable = isrCount >= minISR;
+                
+                if (isAvailable) {
+                    partitionsOnline++;
+                }
+            }
+            
+            const partitionsOffline = totalPartitions - partitionsOnline;
+            
+            // Check if all ingress VIPs are down
+            const bothIngressDown = 
+                clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                clusterState.services.DC2_INGRESS.status === 'DOWN';
+            
+            if (bothIngressDown) {
+                return '0%'; // Complete outage if all VIPs are down
+            }
+            
+            // Calculate partition availability ratio (assuming equal traffic distribution)
+            const partitionAvailabilityRatio = totalPartitions > 0 ? (partitionsOnline / totalPartitions) : 0;
+            
+            if (!quorumMaintained) {
+                // Quorum lost: control plane unavailable, but data plane may still serve
+                if (partitionsOffline === 0) {
+                    // All partitions working but no metadata operations
+                    return '90%'; // High availability for reads/writes, degraded for admin ops
+                } else {
+                    // Combine partition ratio with quorum penalty
+                    const baseAvailability = partitionAvailabilityRatio * 0.8; // 20% penalty for quorum loss
+                    return `${Math.round(baseAvailability * 100)}%`;
+                }
+            }
+            
+            // Normal operation: calculate based on partition availability
+            if (partitionsOffline === 0) {
+                return '99.99%'; // Full availability - all partitions operational
+            } else if (totalPartitions > 0) {
+                // Calculate actual availability based on partition ratio
+                // Note: In production, this assumes equal traffic distribution across partitions
+                // For skewed traffic, actual impact would be different
+                const availabilityPercent = Math.round(partitionAvailabilityRatio * 100 * 100) / 100;
+                return `${availabilityPercent.toFixed(1)}%`;
+            } else {
+                return '0%';
+            }
         }
 
         /**
@@ -1077,18 +1523,34 @@
             
             const c5Status = clusterState.kraft_controllers.C5.status;
             
-            if (quorumMaintained) {
-                quorumDot.className = 'status-dot up';
-                quorumConsensus.className = 'quorum-maintained';
-                quorumConsensus.textContent = `MAINTAINED (${upControllers}/${QUORUM_REQUIRED})`;
-            } else {
-                quorumDot.className = 'status-dot down';
-                quorumConsensus.className = 'quorum-lost';
-                quorumConsensus.textContent = `LOST (${upControllers}/${QUORUM_REQUIRED}) - UNAVAILABLE!`;
-            }
-            quorumText.innerHTML = `Controller (C5) | ${c5Status}`;
+            // Check if VIPs are down
+            const bothIngressDown = 
+                clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                clusterState.services.DC2_INGRESS.status === 'DOWN';
             
-            document.getElementById('site3_panel').classList.toggle('opacity-50', c5Status === 'DOWN');
+            if (quorumMaintained && !bothIngressDown) {
+                if (quorumDot) quorumDot.className = 'status-dot up';
+                if (quorumConsensus) {
+                    quorumConsensus.className = 'quorum-maintained';
+                    quorumConsensus.textContent = `MAINTAINED (${upControllers}/${QUORUM_REQUIRED})`;
+                }
+            } else {
+                if (quorumDot) quorumDot.className = 'status-dot down';
+                if (quorumConsensus) {
+                    quorumConsensus.className = 'quorum-lost';
+                    if (bothIngressDown) {
+                        quorumConsensus.textContent = `LOST - VIPs DOWN (${upControllers}/${QUORUM_REQUIRED}) - UNAVAILABLE!`;
+                    } else {
+                        quorumConsensus.textContent = `LOST (${upControllers}/${QUORUM_REQUIRED}) - UNAVAILABLE!`;
+                    }
+                }
+            }
+            if (quorumText) quorumText.innerHTML = `Controller (C5) | ${c5Status}`;
+            
+            const site3Panel = document.getElementById('site3_panel');
+            if (site3Panel) {
+                site3Panel.classList.toggle('opacity-50', c5Status === 'DOWN');
+            }
 
 
             // DC1 & DC2 Health
@@ -1134,31 +1596,116 @@
                     serviceStatus = 'UNAVAILABLE';
                 }
 
-                brokerStatusElem.className = getStatusClasses(brokerStatus);
-                brokerStatusElem.textContent = brokerStatus;
-                
-                // Broker display list update
-                const brokerList = site === 'DC1' ? '(A1, A2, A3)' : '(B1, B2, B3)';
-                brokerStatusElem.previousSibling.textContent = `Broker ${brokerList}: `;
+                if (brokerStatusElem) {
+                    brokerStatusElem.className = getStatusClasses(brokerStatus);
+                    brokerStatusElem.textContent = brokerStatus;
+                    
+                    // Broker display list update
+                    const brokerList = site === 'DC1' ? '(A1, A2, A3)' : '(B1, B2, B3)';
+                    if (brokerStatusElem.previousSibling) {
+                        brokerStatusElem.previousSibling.textContent = `Broker ${brokerList}: `;
+                    }
+                }
 
+                if (kraftStatusElem) {
+                    kraftStatusElem.className = getStatusClasses(kraftStatus);
+                    kraftStatusElem.textContent = kraftStatus;
+                }
 
-                kraftStatusElem.className = getStatusClasses(kraftStatus);
-                kraftStatusElem.textContent = kraftStatus;
-
-                serviceStatusElem.className = getStatusClasses(serviceStatus);
-                serviceStatusElem.textContent = serviceStatus;
+                if (serviceStatusElem) {
+                    serviceStatusElem.className = getStatusClasses(serviceStatus);
+                    serviceStatusElem.textContent = serviceStatus;
+                }
 
                 // Ingress Status Text Update (Layer 1)
-                ingressStatusTextElem.textContent = ingressStatus;
-                ingressStatusTextElem.className = ingressStatus === 'UP' ? 'text-green-600 font-extrabold' : 'text-red-600 font-extrabold';
+                if (ingressStatusTextElem) {
+                    ingressStatusTextElem.textContent = ingressStatus;
+                    ingressStatusTextElem.className = ingressStatus === 'UP' ? 'text-green-600 font-extrabold' : 'text-red-600 font-extrabold';
+                }
 
 
                 // Panel Highlighting: Dim if unreachable from outside
-                panel.classList.toggle('opacity-50', isSiteUnreachable);
+                if (panel) {
+                    panel.classList.toggle('opacity-50', isSiteUnreachable);
+                }
             });
             
             // Update Min.ISR display in the results column
-            document.getElementById('display_min_isr').textContent = MIN_ISR;
+            const minIsrElement = document.getElementById('display_min_isr');
+            if (minIsrElement) {
+                minIsrElement.textContent = MIN_ISR;
+            }
+            
+            // Update actual availability score
+            const availabilityElement = document.getElementById('availability_score');
+            if (availabilityElement) {
+                const actualAvailability = calculateActualAvailability();
+                availabilityElement.textContent = actualAvailability;
+                
+                // Change color based on availability
+                if (actualAvailability === '0%') {
+                    availabilityElement.className = 'text-red-600 font-bold';
+                } else if (actualAvailability === '25%' || actualAvailability === '40%') {
+                    availabilityElement.className = 'text-red-600 font-bold';
+                } else if (actualAvailability === '60%' || actualAvailability === '70%') {
+                    availabilityElement.className = 'text-yellow-600 font-bold';
+                } else if (actualAvailability === '75%' || actualAvailability === '85%') {
+                    availabilityElement.className = 'text-orange-600 font-bold';
+                } else if (actualAvailability === '95%') {
+                    availabilityElement.className = 'text-blue-600 font-bold';
+                } else {
+                    availabilityElement.className = 'text-green-600 font-bold';
+                }
+            }
+            
+            // Update actual risk level
+            const riskLevelElement = document.getElementById('risk_level');
+            if (riskLevelElement) {
+                const actualRisk = calculateActualRiskLevel();
+                riskLevelElement.textContent = actualRisk.level;
+                riskLevelElement.className = `px-2 py-1 rounded-full text-xs font-bold ${actualRisk.class}`;
+            }
+        }
+
+        /**
+         * Renders the control plane status based on KRaft controller health
+         */
+        function renderControlPlaneStatus() {
+            const container = document.getElementById('control_plane_status');
+            if (!container) {
+                console.error('Control plane status container not found!');
+                return;
+            }
+            
+            const { quorumMaintained, upControllers } = checkQuorum();
+            const bothIngressDown = 
+                clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                clusterState.services.DC2_INGRESS.status === 'DOWN';
+            
+            let statusText, statusClass, statusBgClass;
+            
+            if (bothIngressDown) {
+                statusText = `❌ Control Plane: UNAVAILABLE - All Ingress VIPs DOWN`;
+                statusClass = 'text-red-800';
+                statusBgClass = 'bg-red-100';
+            } else if (!quorumMaintained) {
+                statusText = `❌ Control Plane: LOST - KRaft Quorum Failed (${upControllers}/${QUORUM_REQUIRED} controllers UP)`;
+                statusClass = 'text-red-800';
+                statusBgClass = 'bg-red-100';
+            } else {
+                statusText = `✅ Control Plane: HEALTHY - KRaft Quorum Maintained (${upControllers}/${QUORUM_REQUIRED} controllers UP)`;
+                statusClass = 'text-green-800';
+                statusBgClass = 'bg-green-100';
+            }
+            
+            container.innerHTML = `
+                <div class="${statusBgClass} p-3 rounded-lg">
+                    <p class="font-semibold ${statusClass}">${statusText}</p>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Control Plane manages: Topic creation, Leader elections, ACL changes, Metadata operations
+                    </p>
+                </div>
+            `;
         }
 
         /**
@@ -1166,6 +1713,11 @@
          */
         function renderPartitionStatus() {
             const container = document.getElementById('partition_status');
+            if (!container) {
+                console.error('Partition status container not found!');
+                return;
+            }
+            
             container.innerHTML = ''; // Clear previous state
             const minISR = MIN_ISR; // Use constant
             const uncleanEnabled = UNCLEAN_ENABLED; // Use constant
@@ -1177,23 +1729,11 @@
             // If all external VIPs are down, partitions are unreachable from outside
             if (bothIngressDown) {
                 for (const [pId] of Object.entries(clusterState.partitions)) {
-                    let acksImpactText = '';
-                    if (CLIENT_ACKS === 'all') {
-                        acksImpactText = `Client Acks: all (Durable) - No impact on durability, but no client access.`;
-                    } else if (CLIENT_ACKS === '1') {
-                        acksImpactText = `Client Acks: 1 (Medium Risk) - No impact on durability, but no client access.`;
-                    } else if (CLIENT_ACKS === '0') {
-                        acksImpactText = `Client Acks: 0 (High Risk) - No impact on durability, but no client access.`;
-                    } else if (typeof CLIENT_ACKS === 'number') {
-                        acksImpactText = `Client Acks: ${CLIENT_ACKS} (Custom) - No impact on durability, but no client access.`;
-                    }
-                    
                     const card = `
-                        <div class="p-3 rounded-xl shadow-md border bg-red-50 border-gray-200 min-h-[120px]">
+                        <div class="p-3 rounded-xl shadow-md border bg-red-50 border-gray-200 min-h-[100px]">
                             <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
-                            <p class="text-xs font-semibold text-red-800">External access lost: All Ingress VIPs are DOWN. Partition is <strong>Unreachable/Offline</strong> for clients.</p>
-                            <p class="text-[10px] text-gray-600 mt-1">Note: Internal leaders may still be serving inside the cluster, but no client connectivity is available.</p>
-                            <p class="text-[10px] text-gray-600 mt-1">${acksImpactText}</p>
+                            <p class="text-xs font-semibold text-red-800">OCP Gateway Down: All Ingress VIPs are DOWN. Partition is <strong>Unreachable/Offline</strong> for clients.</p>
+                            <p class="text-[10px] text-gray-600 mt-1">Note: Equivalent to site failure - VIP is entry point to all OCP containerized services.</p>
                         </div>
                     `;
                     container.innerHTML += card;
@@ -1201,7 +1741,15 @@
                 return;
             }
 
+            // Check if partition data exists
+            if (!clusterState.partitions || Object.keys(clusterState.partitions).length === 0) {
+                console.error('No partition data found in clusterState.partitions');
+                container.innerHTML = '<div class="p-3 rounded-xl shadow-md border bg-red-100 border-gray-200 min-h-[100px]"><h4 class="font-extrabold text-sm mb-1 text-gray-800">Error</h4><p class="text-xs font-semibold text-red-800">No partition data available</p></div>';
+                return;
+            }
+            
             for (const [pId, pData] of Object.entries(clusterState.partitions)) {
+                
                 // Find the initial leader from the start state
                 const initialLeader = initialState.partitions[pId].leader;
                 const currentLeader = clusterState.partitions[pId].leader; // Current leader after election logic has run
@@ -1223,42 +1771,69 @@
 
 
                 if (!isAvailable) {
-                    // --- OFFLINE (RED) ---
+                    // --- PARTITION OFFLINE (RED) - ISR < Min.ISR ---
                     const failedLeaderText = initialLeaderIsInternallyDown ? `<span class="font-extrabold text-red-700">${initialLeader} (Failed)</span>` : initialLeader;
-                    leaderText = `Leader Failed: ${failedLeaderText}. ISR Count (${isrCount}) &lt; Min.ISR (${minISR}). **OFFLINE**`;
-                    leaderColorClass = 'text-red-800';
-                    leaderBgClass = 'bg-red-100';
+                    
+                    // According to Kafka logic: If ISR < Min.ISR, partition is OFFLINE regardless of leader availability
+                    if (quorumMaintained) {
+                        leaderText = `Leader Failed: ${failedLeaderText}. ISR Count (${isrCount}) < Min.ISR (${minISR}). **OFFLINE**`;
+                        leaderColorClass = 'text-red-800';
+                        leaderBgClass = 'bg-red-100';
+                    } else {
+                        // No quorum, cannot elect new leader - check if data is actually available
+                        if (isrCount === 0) {
+                            // No in-sync replicas at all - truly offline
+                            leaderText = `Leader Failed: ${failedLeaderText}. Control Plane LOST (no election possible). ISR Count (${isrCount}) < Min.ISR (${minISR}). **OFFLINE**`;
+                            leaderColorClass = 'text-red-800';
+                            leaderBgClass = 'bg-red-100';
+                    } else {
+                        // ISR < Min.ISR - partition should be offline regardless of control plane
+                        const aopText = AOP_VALUE > 0 ? ` (AOP=${AOP_VALUE} enabled)` : '';
+                        leaderText = `Leader Failed: ${failedLeaderText}. Control Plane LOST (no election possible). ISR Count (${isrCount}) < Min.ISR (${minISR})${aopText}. **OFFLINE**`;
+                        leaderColorClass = 'text-red-800';
+                        leaderBgClass = 'bg-red-100';
+                    }
+                    }
                 
                 } else if (!quorumMaintained && initialLeaderIsInternallyDown && !leaderChanged) {
-                    // --- CONTROL PLANE LOST + LEADER FAILED (HARD OFFLINE) ---
-                    leaderText = `Leader Failed: ${initialLeader}. Control Plane LOST (no election possible). **OFFLINE**`;
-                    leaderColorClass = 'text-red-800';
-                    leaderBgClass = 'bg-red-100';
+                    // --- LEADER FAILED - check if data is actually available ---
+                    if (isrCount === 0) {
+                        // No in-sync replicas at all - truly offline
+                        leaderText = `Leader Failed: ${initialLeader}. Control Plane LOST (no election possible). ISR Count: ${isrCount} (Min.ISR: ${minISR}). **OFFLINE**`;
+                        leaderColorClass = 'text-red-800';
+                        leaderBgClass = 'bg-red-100';
+                    } else {
+                        // ISR < Min.ISR - partition should be offline regardless of control plane
+                        const aopText = AOP_VALUE > 0 ? ` (AOP=${AOP_VALUE} enabled)` : '';
+                        leaderText = `Leader Failed: ${initialLeader}. Control Plane LOST (no election possible). ISR Count: ${isrCount} (Min.ISR: ${minISR})${aopText}. **OFFLINE**`;
+                        leaderColorClass = 'text-red-800';
+                        leaderBgClass = 'bg-red-100';
+                    }
 
                 } else if (!quorumMaintained) {
-                    // --- CONTROL PLANE LOST (AMBER) ---
+                    // --- DATA PLANE AVAILABLE BUT DEGRADED (YELLOW/DEGRADED) ---
                     // Partitions still serve traffic while the current leader is alive; elections/changes are blocked
-                    leaderText = `Serving with Leader: ${currentLeader} (${currentLeaderSite}). Control Plane LOST. Elections/changes blocked. ISR Count: ${isrCount} (Min.ISR: ${minISR})`;
+                    leaderText = `✅ Data Operations: AVAILABLE with Leader: ${currentLeader} (${currentLeaderSite}). ISR Count: ${isrCount} (Min.ISR: ${minISR})`;
                     leaderColorClass = 'text-yellow-800';
                     leaderBgClass = 'bg-yellow-50';
 
                 } else if (leaderChanged) {
-                    // --- FAILOVER SUCCESSFUL (YELLOW with INDIGO/GRAY Text) ---
+                    // --- FAILOVER SUCCESSFUL (YELLOW with PULSING ANIMATION) ---
                     // Text coloring for emphasis on the change event
-                    const newLeaderText = `<span class="font-extrabold text-indigo-700">${currentLeader}</span>`;
+                    const newLeaderText = `<span class="font-extrabold text-indigo-700 animate-pulse">${currentLeader}</span>`;
                     // Check if the initial leader was actually the one that failed (not just a re-election from a non-failed broker)
-                    const failedLeaderText = initialLeaderIsInternallyDown ? `(Old Leader ${initialLeader} <span class="text-gray-700 font-extrabold">Failed</span>)` : '';
+                    const failedLeaderText = initialLeaderIsInternallyDown ? `(Old Leader ${initialLeader} <span class="text-red-700 font-extrabold">Failed</span>)` : '';
                     
                     if (uncleanEnabled) {
-                        // ORANGE: Unclean Election Risk
+                        // ORANGE: Unclean Election Risk with pulsing
                         leaderText = `⚠️ ULE Election: New Leader ${newLeaderText} (${currentLeaderSite}). ${failedLeaderText}. **RISKING DATA LOSS**`;
-                        leaderColorClass = 'text-orange-700';
-                        leaderBgClass = 'bg-yellow-200'; // Using yellow to avoid red
+                        leaderColorClass = 'text-orange-800';
+                        leaderBgClass = 'bg-yellow-200 border-2 border-orange-300 animate-pulse'; // Pulsing border and background
                     } else {
-                         // YELLOW: Clean Election Successful
-                        leaderText = `Leader Changed! New Leader: ${newLeaderText} (${currentLeaderSite}) ${failedLeaderText}`;
+                         // YELLOW: Clean Election Successful with pulsing
+                        leaderText = `🔄 Leader Changed! New Leader: ${newLeaderText} (${currentLeaderSite}) ${failedLeaderText}`;
                         leaderColorClass = 'text-yellow-800';
-                        leaderBgClass = 'bg-yellow-100';
+                        leaderBgClass = 'bg-yellow-100 border-2 border-yellow-400 animate-pulse'; // Pulsing border and background
                     }
                 
                 } else if (initialLeaderIsInternallyDown) {
@@ -1269,32 +1844,29 @@
 
                 } else {
                     // --- STABLE (GREEN) ---
-                    leaderText = `Leader: ${currentLeader} (${currentLeaderSite}). ISR Count: ${isrCount} (Min.ISR: ${minISR})`;
+                    // Check if this is the same leader as initial (no change)
+                    const isStableLeader = currentLeader === initialLeader;
+                    const leaderDisplayText = isStableLeader ? 
+                        `<span class="font-extrabold text-green-700">${currentLeader}</span>` : 
+                        `<span class="font-extrabold text-green-700">${currentLeader}</span>`;
+                    
+                    leaderText = `✅ Stable Leader: ${leaderDisplayText} (${currentLeaderSite}). ISR Count: ${isrCount} (Min.ISR: ${minISR})`;
                     leaderColorClass = 'text-green-800';
-                    leaderBgClass = 'bg-green-100';
+                    leaderBgClass = isStableLeader ? 'bg-green-100' : 'bg-green-100 border-2 border-green-300';
                 }
-                
-                // Add Client Acks impact information to all cases
-                let acksImpactText = '';
-                if (CLIENT_ACKS === 'all') {
-                    acksImpactText = ` | Client Acks: all (Durable)`;
-                } else if (CLIENT_ACKS === '1') {
-                    acksImpactText = ` | Client Acks: 1 (Medium Risk)`;
-                } else if (CLIENT_ACKS === '0') {
-                    acksImpactText = ` | Client Acks: 0 (High Risk)`;
-                } else if (typeof CLIENT_ACKS === 'number') {
-                    acksImpactText = ` | Client Acks: ${CLIENT_ACKS} (Custom)`;
-                }
-                
-                leaderText += acksImpactText;
 
-                const allReplicas = initialState.partitions[pId].leader + ', ' + initialState.partitions[pId].followers.join(', ');
+                const allReplicas = clusterState.partitions[pId].leader + ', ' + clusterState.partitions[pId].followers.join(', ');
+
+                // Add animation class for leader changes
+                const animationClass = leaderChanged ? 'leader-change-animation' : '';
+                const changeIndicatorClass = leaderChanged ? 'change-indicator' : '';
 
                 const card = `
-                    <div class="p-3 rounded-xl shadow-md border ${leaderBgClass} border-gray-200 min-h-[120px]">
+                    <div class="p-3 rounded-xl shadow-md border ${leaderBgClass} border-gray-200 min-h-[100px] ${animationClass} ${changeIndicatorClass}">
                         <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
                         <p class="text-xs font-semibold ${leaderColorClass}">${leaderText}</p>
-                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=${RF_VALUE}): ${allReplicas}</p>
+                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=${RF_VALUE}${AOP_VALUE > 0 ? ` + AOP=${AOP_VALUE}` : ''}): ${allReplicas}</p>
+                        ${leaderChanged ? '<div class="mt-2 text-[10px] text-orange-600 font-semibold">⚠️ Leader Election Completed</div>' : ''}
                     </div>
                 `;
                 container.innerHTML += card;
@@ -1322,41 +1894,43 @@
 
             if (dc1IngressDown) {
                 newSequence.push("--- CRITICAL ADJUSTMENT: DC1 Ingress Dependency ---");
-                newSequence.push(`- Ingress VIP DC1 is DOWN. KRaft assumes DC1 is internally unreachable (VIP SPOF).`);
+                newSequence.push(`- Ingress VIP DC1 is DOWN. OCP gateway unavailable - all containerized services unreachable.`);
+                newSequence.push(`- This is equivalent to DC1 site failure - VIP Ingress is the entry point to all OCP services.`);
 
                 ['C1', 'C2'].forEach(id => {
                     originalDC1Controllers[id] = clusterState.kraft_controllers[id].status;
                     if (clusterState.kraft_controllers[id].status === 'UP') {
                         clusterState.kraft_controllers[id].status = 'DOWN';
-                        newSequence.push(`- KRaft Controller ${id} (DC1) is logically marked DOWN for Quorum check.`);
+                        newSequence.push(`- KRaft Controller ${id} (DC1) is logically marked DOWN - unreachable via OCP.`);
                     }
                 });
                 ['A1', 'A2', 'A3'].forEach(id => {
                     originalDC1Brokers[id] = clusterState.brokers[id].status;
                     if (clusterState.brokers[id].status === 'UP') {
                         clusterState.brokers[id].status = 'DOWN';
-                        newSequence.push(`- Kafka Broker ${id} (DC1) is logically marked DOWN for Leader Election.`);
+                        newSequence.push(`- Kafka Broker ${id} (DC1) is logically marked DOWN - unreachable via OCP.`);
                     }
                 });
             }
 
             if (dc2IngressDown) {
                 newSequence.push("--- CRITICAL ADJUSTMENT: DC2 Ingress Dependency ---");
-                newSequence.push(`- Ingress VIP DC2 is DOWN. KRaft assumes DC2 is internally unreachable (VIP SPOF).`);
+                newSequence.push(`- Ingress VIP DC2 is DOWN. OCP gateway unavailable - all containerized services unreachable.`);
+                newSequence.push(`- This is equivalent to DC2 site failure - VIP Ingress is the entry point to all OCP services.`);
                 
                 // Force DC2 components to DOWN status for the purpose of KRaft decision-making (Leader Election)
                 ['C3', 'C4'].forEach(id => { 
                     originalDC2Controllers[id] = clusterState.kraft_controllers[id].status;
                     if (clusterState.kraft_controllers[id].status === 'UP') {
                         clusterState.kraft_controllers[id].status = 'DOWN';
-                        newSequence.push(`- KRaft Controller ${id} (DC2) is logically marked DOWN for Quorum check.`);
+                        newSequence.push(`- KRaft Controller ${id} (DC2) is logically marked DOWN - unreachable via OCP.`);
                     }
                 });
                 ['B1', 'B2', 'B3'].forEach(id => {
                     originalDC2Brokers[id] = clusterState.brokers[id].status;
                     if (clusterState.brokers[id].status === 'UP') {
                         clusterState.brokers[id].status = 'DOWN';
-                        newSequence.push(`- Kafka Broker ${id} (DC2) is logically marked DOWN for Leader Election.`);
+                        newSequence.push(`- Kafka Broker ${id} (DC2) is logically marked DOWN - unreachable via OCP.`);
                     }
                 });
             }
@@ -1377,7 +1951,7 @@
                 newSequence.push("✅ Quorum Maintained! (Control plane is fully operational.)");
             }
             
-            newSequence.push(`--- Data Plane Check (RF=${RF_VALUE}, Min.ISR=${minISR}, ULE=${uncleanEnabled ? 'ON' : 'OFF'}, Client Acks=${CLIENT_ACKS}) ---`);
+            newSequence.push(`--- Data Plane Check (RF=${RF_VALUE}, Min.ISR=${MIN_ISR}, ULE=${uncleanEnabled ? 'ON' : 'OFF'}) ---`);
 
             // Iterate over partitions to check for required leader election
             for (const [pId, pData] of Object.entries(initialState.partitions)) {
@@ -1402,23 +1976,16 @@
                              
                             // **CRITICAL STATE UPDATE:** Update State
                             clusterState.partitions[pId].leader = newLeaderId;
+                            clusterState.partitions[pId].uleUsed = false; // Clean election - no ULE
                             const newISRCount = getISRCount(pId); // Recalculate ISR after new leader is chosen
                             
                             if (newISRCount >= minISR) {
                                 newSequence.push(`3. Result: Election successful. New Leader ${newLeaderId}. ISR Count (${newISRCount}) $\\geq$ Min.ISR (${minISR}). Partition is **Available** (RPO=0 maintained).`);
                                 newSequence.push(`4. Kafka Clients: Metadata Refresh and redirect to the New Leader.`);
-                                if (CLIENT_ACKS === 'all') {
-                                    newSequence.push(`5. Client Acks Impact: acks=all ensures durability with Min.ISR guarantee.`);
-                                } else if (CLIENT_ACKS === '1') {
-                                    newSequence.push(`5. Client Acks Impact: acks=1 provides medium durability (leader only).`);
-                                } else if (CLIENT_ACKS === '0') {
-                                    newSequence.push(`5. Client Acks Impact: acks=0 provides maximum performance but no durability guarantee.`);
-                                }
                             } else {
                                 // Election occurred, but Min.ISR failed immediately after.
                                 newSequence.push(`3. Result: Election successful, but ISR Count (${newISRCount}) &lt; Min.ISR (${minISR}). Partition is now **Offline** (Producer Blocked).`);
                                 newSequence.push(`4. Kafka Clients: Producer/Consumer receive **NotEnoughReplicas** error.`);
-                                newSequence.push(`5. Client Acks Impact: All acks levels affected - partition unavailable regardless of acks setting.`);
                             }
                         } else {
                             // No available ISR found. Check ULE condition.
@@ -1429,19 +1996,15 @@
                                     // Pick the first remaining UP broker (Unclean Leader)
                                     const uncleanLeader = remainingBrokers[0]; 
                                     clusterState.partitions[pId].leader = uncleanLeader;
+                                    clusterState.partitions[pId].uleUsed = true; // Mark ULE was used
                                     const newISRCount = getISRCount(pId);
                                     
                                     newSequence.push(`2. KRaft Sequence: No ISR found. ULE is ON. Electing ${uncleanLeader} as Unclean Leader.`);
                                     newSequence.push(`3. Result: Partition is **Available** (${newISRCount}/${minISR}) but **RISKS DATA LOSS** (Unclean Election).`);
                                     newSequence.push(`4. Kafka Clients: Metadata Refresh and redirect to the Unclean Leader.`);
-                                    newSequence.push(`⚠️ WARNING: Unclean Leader Election may cause data loss if the new leader is not in-sync with the previous leader.`);
-                                    if (CLIENT_ACKS === 'all') {
-                                        newSequence.push(`5. Client Acks Impact: acks=all may still work but data consistency is compromised.`);
-                                    } else if (CLIENT_ACKS === '1' || CLIENT_ACKS === '0') {
-                                        newSequence.push(`5. Client Acks Impact: acks=${CLIENT_ACKS} continues working but with high data loss risk.`);
-                                    }
                                 } else {
                                     // ULE enabled but NO broker left.
+                                    clusterState.partitions[pId].uleUsed = false;
                                     newSequence.push(`2. KRaft Sequence: ULE failed. No remaining broker found.`);
                                     newSequence.push(`3. Result: Partition ${pId} remains **Offline**.`);
                                     newSequence.push(`4. Kafka Clients: Producer/Consumer receive **NotEnoughReplicas** error.`);
@@ -1451,8 +2014,6 @@
                                 newSequence.push(`2. KRaft Sequence: Controller failed to find an available In-Sync Replica (ISR). ULE is Disabled.`);
                                 newSequence.push(`3. Result: Partition ${pId} is **Offline** (Stuck).`);
                                 newSequence.push(`4. Kafka Clients: Producer/Consumer receive **NotEnoughReplicas** error.`);
-                                newSequence.push(`ℹ️ INFO: This is the safe behavior - no data loss risk, but partition unavailable until ISR restored.`);
-                                newSequence.push(`5. Client Acks Impact: All acks levels affected - partition unavailable regardless of acks setting.`);
                             }
                         }
                     } 
@@ -1461,18 +2022,10 @@
                     else if (!quorumMaintained) {
                         newSequence.push("2. KRaft Blocked: Quorum destroyed. New Leader cannot be elected.");
                         newSequence.push(`3. Result: Partition ${pId} remains Offline/Unavailable. Clients receive persistent Errors.`);
-                        newSequence.push(`4. Client Acks Impact: All acks levels affected - partition unavailable regardless of acks setting.`);
                     }
                 } else {
                     // Leader remains operational (or unreachable externally, but internally fine)
                     newSequence.push(`Partition ${pId}: Leader (${initialLeader}) remains operational. ISR Count: ${currentISRCount}.`);
-                    if (CLIENT_ACKS === 'all') {
-                        newSequence.push(`Client Acks Impact: acks=all ensures durability with Min.ISR guarantee.`);
-                    } else if (CLIENT_ACKS === '1') {
-                        newSequence.push(`Client Acks Impact: acks=1 provides medium durability (leader only).`);
-                    } else if (CLIENT_ACKS === '0') {
-                        newSequence.push(`Client Acks Impact: acks=0 provides maximum performance but no durability guarantee.`);
-                    }
                 }
             }
             
@@ -1505,22 +2058,35 @@
 
             // Iterate through all control elements and set status in newState
             const controls = document.querySelectorAll('.status-box-toggle');
+            console.log('Found controls:', controls.length);
+            
             controls.forEach(control => {
                 const idParts = control.id.split('_');
                 const type = idParts[0];
                 const id = idParts.slice(1).join('_'); // Rejoin in case of IDs like DC1_CONNECT
 
                 const status = control.classList.contains('up-state') ? 'UP' : 'DOWN';
+                console.log(`Control ${control.id}: type=${type}, id=${id}, status=${status}`);
 
                 if (type === 'ctrl') {
-                    if (newState.kraft_controllers[id]) newState.kraft_controllers[id].status = status;
+                    if (newState.kraft_controllers[id]) {
+                        newState.kraft_controllers[id].status = status;
+                        console.log(`Updated controller ${id} to ${status}`);
+                    }
                 } else if (type === 'brkr') {
-                    if (newState.brokers[id]) newState.brokers[id].status = status;
+                    if (newState.brokers[id]) {
+                        newState.brokers[id].status = status;
+                        console.log(`Updated broker ${id} to ${status}`);
+                    }
                 } else if (type === 'svc') {
-                    if (newState.services[id]) newState.services[id].status = status;
+                    if (newState.services[id]) {
+                        newState.services[id].status = status;
+                        console.log(`Updated service ${id} to ${status}`);
+                    }
                 }
             });
 
+            console.log('Final newState:', newState);
             return newState;
         }
         
@@ -1543,6 +2109,7 @@
             
             // 4. Render UI & Determine Client Impact
             renderClusterHealth();
+            renderControlPlaneStatus();
             renderPartitionStatus();
             renderClientImpact(); 
             renderSequenceLog(failoverSteps);
@@ -1553,21 +2120,34 @@
          */
         window.runScenario = function(scenarioId) {
             if (scenarioId === 5) {
-                // Restore logic
+                // Restore logic - make sure to use current RF configuration
                 clusterState = JSON.parse(JSON.stringify(initialState));
-                clusterState.partitions = JSON.parse(JSON.stringify(initialState.partitions));
                 
-                // Update UI status boxes to reflect UP state
+                // Recalculate partition assignments with current RF
+                recalculatePartitionAssignments();
+                
+                // CRITICAL: Update all UI elements to show UP state
                 document.querySelectorAll('.status-box-toggle').forEach(element => {
                     element.classList.add('up-state');
                     element.classList.remove('down-state');
                     element.querySelector('.status-text').textContent = 'UP';
                 });
                 
-                // NOTE: Inputs are removed, so no need to restore element values
+                // Keep Rack Awareness at current state - only restore components
                 
-                const log = ["--- 🛑 Initial Failure Event Summary 🛑 ---", "- No components were manually stopped.", "--- KRaft Failover Sequence Execution ---", "Event: Cluster restoration initiated.", "Result: Cluster restored to full operational status."];
+                const log = [
+                    "--- 🛑 Initial Failure Event Summary 🛑 ---", 
+                    "- No components were manually stopped.", 
+                    "--- KRaft Failover Sequence Execution ---", 
+                    `1.1. KRaft Check: ${QUORUM_SIZE} Controllers configured. Minimum required for Quorum is ${QUORUM_REQUIRED}. Current UP: ${QUORUM_SIZE}.`,
+                    "✅ Quorum Maintained! (Control plane is fully operational.)",
+                    `--- Data Plane Check (RF=${RF_VALUE}, Min.ISR=${MIN_ISR}, ULE=${UNCLEAN_ENABLED ? 'ON' : 'OFF'}) ---`,
+                    "Event: Cluster restoration initiated.",
+                    "Result: Cluster restored to full operational status."
+                ];
+                
                 renderClusterHealth();
+                renderControlPlaneStatus();
                 renderPartitionStatus();
                 renderClientImpact(); 
                 renderSequenceLog(log);
@@ -1576,6 +2156,12 @@
 
 
         function renderClientImpact() {
+            
+            // Check if elements exist
+            const producerEl = document.getElementById('producer_impact');
+            const consumerEl = document.getElementById('consumer_impact');
+            const serviceEl = document.getElementById('service_impact');
+            
             const { quorumMaintained } = checkQuorum();
             let producerMsg = "";
             let consumerMsg = "";
@@ -1583,7 +2169,6 @@
 
             const minISR = MIN_ISR;
             const uncleanEnabled = UNCLEAN_ENABLED;
-            const clientAcks = CLIENT_ACKS;
             let partitionsOffline = 0;
             let leadersFailed = 0;
             let ingressDownCount = 0;
@@ -1606,14 +2191,9 @@
                     partitionsOffline++;
                 }
 
-                // Rough check to see if an unclean election was the result
-                // This logic needs to reflect the final partition leader state after updateStateAfterFailover
-                if (currentLeader !== initialLeader && clusterState.brokers[initialLeader].status === 'DOWN' && uncleanEnabled) {
-                    // Check if the new leader is an Unclean Leader (i.e., elected when Min.ISR would have failed clean election)
-                    const oldISRCount = getISRCount(pId);
-                    if (oldISRCount < minISR) {
-                         uncleanUsed = true;
-                    }
+                // Check if ULE was actually used (tracked during election process)
+                if (clusterState.partitions[pId].uleUsed === true) {
+                    uncleanUsed = true;
                 }
             }
             
@@ -1631,66 +2211,103 @@
                 clusterState.services.DC1_INGRESS.status === 'DOWN' &&
                 clusterState.services.DC2_INGRESS.status === 'DOWN';
 
-            // If all external VIPs are down, clients cannot connect to brokers at all
-            if (bothIngressDown) {
-                const extMsg = `${red} <span class=\"font-medium\">Client connectivity:</span> All Ingress VIPs are DOWN — cannot connect to brokers`;
-                producerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Writes unavailable (no client access)</div>`;
-                consumerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Reads unavailable (no client access)</div>`;
-                serviceMsg = `<div class=\"space-y-1\">${extMsg}<br>${yellow} <span class=\"font-medium\">Note:</span> Internal services may continue inside the cluster, but are unreachable externally.</div>`;
+            console.log('VIP Status Check in renderClientImpact:', {
+                DC1_INGRESS: clusterState.services.DC1_INGRESS.status,
+                DC2_INGRESS: clusterState.services.DC2_INGRESS.status,
+                bothIngressDown: bothIngressDown
+            });
 
-                document.getElementById('producer_impact').innerHTML = `<span class=\"font-bold\">Producer (Write)</span><br>${producerMsg}`;
-                document.getElementById('consumer_impact').innerHTML = `<span class=\"font-bold\">Consumer (Read)</span><br>${consumerMsg}`;
-                document.getElementById('service_impact').innerHTML = `<span class=\"font-bold\">Connect/SR</span><br>${serviceMsg}`;
+            // If all external VIPs are down, clients cannot connect to brokers at all
+            // VIP Ingress is the gateway to all OCP containerized services
+            if (bothIngressDown) {
+                console.log('Both Ingress VIPs are DOWN - showing unavailable status');
+                const extMsg = `${red} <span class=\"font-medium\">OCP Gateway:</span> All Ingress VIPs are DOWN — OCP services unreachable`;
+                producerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Writes unavailable (OCP gateway down)</div>`;
+                consumerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Reads unavailable (OCP gateway down)</div>`;
+                serviceMsg = `<div class=\"space-y-1\">${extMsg}<br>${yellow} <span class=\"font-medium\">Note:</span> Equivalent to site failure - VIP is entry point to all OCP services.</div>`;
+            } else if (!quorumMaintained) {
+                console.log('Quorum Lost but VIPs UP - showing degraded status');
+                const controlMsg = `${yellow} <span class=\"font-medium\">Control Plane:</span> ❌ UNAVAILABLE (Metadata operations, Topic creation, ACL changes blocked)`;
+                
+                // Check if any partitions are offline (ISR count < Min.ISR)
+                let hasOfflinePartitions = false;
+                for (const [pId, pData] of Object.entries(initialState.partitions)) {
+                    const isrCount = getISRCount(pId);
+                    if (isrCount < MIN_ISR) {
+                        hasOfflinePartitions = true;
+                        break;
+                    }
+                }
+                
+                let dataMsg, producerMsg, consumerMsg, serviceMsg;
+                if (hasOfflinePartitions) {
+                    dataMsg = `${red} <span class=\"font-medium\">Data Plane:</span> ❌ UNAVAILABLE (ISR count < Min.ISR - Write operations blocked)`;
+                    producerMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${red} <span class=\"font-medium\">Impact:</span> Cannot create new topics, write operations unavailable</div>`;
+                    consumerMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${yellow} <span class=\"font-medium\">Impact:</span> Cannot create new topics, read operations may work from remaining replicas</div>`;
+                    serviceMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${red} <span class=\"font-medium\">Impact:</span> Connect tasks unavailable, no new tasks can be created</div>`;
+                } else {
+                    dataMsg = `${yellow} <span class=\"font-medium\">Data Plane:</span> ⚠️ DEGRADED (Read/Write operations limited due to leader failure)`;
+                    producerMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${yellow} <span class=\"font-medium\">Impact:</span> Cannot create new topics, limited write capability on existing topics</div>`;
+                    consumerMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${yellow} <span class=\"font-medium\">Impact:</span> Cannot create new topics, limited read capability on existing topics</div>`;
+                    serviceMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${yellow} <span class=\"font-medium\">Impact:</span> Existing Connect tasks may be affected, no new tasks can be created</div>`;
+                }
+
+                if (producerEl) {
+                    producerEl.innerHTML = `<span class="font-bold">Producer (Write)</span><br>${producerMsg}`;
+                    console.log('Producer impact set (VIP DOWN):', producerMsg);
+                } else {
+                    console.error('Producer impact element not found!');
+                }
+                
+                if (consumerEl) {
+                    consumerEl.innerHTML = `<span class="font-bold">Consumer (Read)</span><br>${consumerMsg}`;
+                    console.log('Consumer impact set (VIP DOWN):', consumerMsg);
+                } else {
+                    console.error('Consumer impact element not found!');
+                }
+                
+                if (serviceEl) {
+                    serviceEl.innerHTML = `<span class="font-bold">Connect/SR</span><br>${serviceMsg}`;
+                    console.log('Service impact set (VIP DOWN):', serviceMsg);
+                } else {
+                    console.error('Service impact element not found!');
+                }
                 return;
             }
 
-            // Producer - Consider Client Acks setting
+            // Producer
             const prodMeta = !quorumMaintained
                 ? `${red} <span class="font-medium">Control plane:</span> Lost — metadata ops blocked (topic/ACL/partition)`
                 : `${green} <span class="font-medium">Control plane:</span> OK — metadata ops available`;
 
+            // Check available brokers and partition health
+            const availableBrokers = Object.values(clusterState.brokers).filter(b => b.status === 'UP').length;
+            const durabilityReduced = availableBrokers < RF_VALUE;
+            const criticalBrokerShortage = availableBrokers < MIN_ISR;
+            
             let prodData;
-            let prodAcksInfo = '';
-            
-            // Add acks-specific information
-            if (clientAcks === '0') {
-                prodAcksInfo = `${yellow} <span class="font-medium">Client Acks:</span> 0 (Fire and Forget) - High performance, high data loss risk`;
-            } else if (clientAcks === '1') {
-                prodAcksInfo = `${yellow} <span class="font-medium">Client Acks:</span> 1 (Leader Only) - Medium performance, medium data loss risk`;
-            } else if (clientAcks === 'all') {
-                prodAcksInfo = `${green} <span class="font-medium">Client Acks:</span> all (All Replicas) - Relies on Min.ISR for durability`;
-            } else if (typeof clientAcks === 'number') {
-                prodAcksInfo = `${yellow} <span class="font-medium">Client Acks:</span> ${clientAcks} (Custom) - ${clientAcks >= minISR ? 'Good durability' : 'May not guarantee durability'}`;
-            }
-            
-            if (partitionsOffline > 0) {
+            if (criticalBrokerShortage) {
+                // Critical: If available brokers < Min.ISR, NO partition can maintain Min.ISR
+                prodData = `${red} <span class=\"font-medium\">Data plane:</span> <strong>ALL WRITES BLOCKED</strong> - Available brokers (${availableBrokers}) < Min.ISR (${MIN_ISR})`;
+            } else if (partitionsOffline > 0) {
+                // Some partitions have ISR < Min.ISR
                 prodData = `${red} <span class=\"font-medium\">Data plane:</span> Writes blocked on ${partitionsOffline} partition(s) (ISR < Min.ISR)`;
+            } else if (durabilityReduced) {
+                // Available brokers < RF but >= Min.ISR: writes still work but durability reduced
+                prodData = `${yellow} <span class=\"font-medium\">Data plane:</span> Writes OK but RF reduced (${availableBrokers}/${RF_VALUE} brokers) - some replicas out-of-sync`;
             } else {
-                prodData = `${green} <span class=\"font-medium\">Data plane:</span> Writes OK on partitions with leader and ISR ≥ Min.ISR`;
+                prodData = `${green} <span class=\"font-medium\">Data plane:</span> Writes OK on all partitions with full replication`;
             }
             const prodRisk = !quorumMaintained
                 ? `${yellow} <span class="font-medium">Risk:</span> If a leader fails while quorum is lost, writes stop until quorum restored`
                 : '';
-            producerMsg = `<div class="space-y-1">${prodMeta}<br>${prodData}<br>${prodAcksInfo}${prodRisk ? `<br>${prodRisk}` : ''}</div>`;
+            producerMsg = `<div class="space-y-1">${prodMeta}<br>${prodData}${prodRisk ? `<br>${prodRisk}` : ''}</div>`;
 
-            // Consumer - Acks setting affects read consistency
+            // Consumer
             const consMeta = !quorumMaintained
                 ? `${red} <span class="font-medium">Control plane:</span> Lost — metadata refresh/admin blocked`
                 : `${green} <span class="font-medium">Control plane:</span> OK — metadata refresh available`;
             let consData;
-            let consAcksInfo = '';
-            
-            // Consumer reads are not directly affected by producer acks, but data consistency is
-            if (clientAcks === '0') {
-                consAcksInfo = `${yellow} <span class="font-medium">Data Consistency:</span> May read inconsistent data due to acks=0 (Fire and Forget)`;
-            } else if (clientAcks === '1') {
-                consAcksInfo = `${yellow} <span class="font-medium">Data Consistency:</span> May read data not yet replicated to followers`;
-            } else if (clientAcks === 'all') {
-                consAcksInfo = `${green} <span class="font-medium">Data Consistency:</span> Reads from durable data (acks=all with Min.ISR guarantee)`;
-            } else if (typeof clientAcks === 'number') {
-                consAcksInfo = `${yellow} <span class="font-medium">Data Consistency:</span> Depends on acks=${clientAcks} vs Min.ISR=${minISR}`;
-            }
-            
             if (partitionsOffline > 0) {
                 consData = `${red} <span class=\"font-medium\">Data plane:</span> Reads stopped on ${partitionsOffline} partition(s) (ISR < Min.ISR)`;
             } else {
@@ -1699,7 +2316,7 @@
             const consRisk = !quorumMaintained
                 ? `${yellow} <span class="font-medium">Risk:</span> If any leader fails, reads stop until quorum restored`
                 : '';
-            consumerMsg = `<div class="space-y-1">${consMeta}<br>${consData}<br>${consAcksInfo}${consRisk ? `<br>${consRisk}` : ''}</div>`;
+            consumerMsg = `<div class="space-y-1">${consMeta}<br>${consData}${consRisk ? `<br>${consRisk}` : ''}</div>`;
 
             // Connect / Schema Registry
                 const dc1ConnectDown = clusterState.services.DC1_CONNECT.status === 'DOWN';
@@ -1717,18 +2334,6 @@
                 ? `${yellow} <span class="font-medium">Advisory:</span> Freeze config/rollouts until quorum is restored`
                 : '';
 
-            // Connect/SR tasks are affected by producer acks settings
-            let svcAcksInfo = '';
-            if (clientAcks === '0') {
-                svcAcksInfo = `${yellow} <span class="font-medium">Task Durability:</span> Connect tasks may lose data with acks=0 (Fire and Forget)`;
-            } else if (clientAcks === '1') {
-                svcAcksInfo = `${yellow} <span class="font-medium">Task Durability:</span> Connect tasks at risk if leader fails before replication`;
-            } else if (clientAcks === 'all') {
-                svcAcksInfo = `${green} <span class="font-medium">Task Durability:</span> Connect tasks use durable writes (acks=all)`;
-            } else if (typeof clientAcks === 'number') {
-                svcAcksInfo = `${yellow} <span class="font-medium">Task Durability:</span> Depends on acks=${clientAcks} configuration`;
-            }
-
             const svcDowns = [];
             if (dc1ConnectDown && dc2ConnectDown) svcDowns.push('Connect (both sites)');
             else if (dc1ConnectDown) svcDowns.push('Connect DC1');
@@ -1737,11 +2342,27 @@
             else if (dc1SRDown) svcDowns.push('Schema Registry DC1');
             else if (dc2SRDown) svcDowns.push('Schema Registry DC2');
             const svcDownNote = svcDowns.length > 0 ? `<br>${red} <span class=\"font-medium\">Outage:</span> ${svcDowns.join(', ')} down` : '';
-            serviceMsg = `<div class="space-y-1">${metaConnect}<br>${dataConnect}<br>${svcAcksInfo}${svcDownNote}${svcRisk ? `<br>${svcRisk}` : ''}</div>`;
+            serviceMsg = `<div class="space-y-1">${metaConnect}<br>${dataConnect}${svcDownNote}${svcRisk ? `<br>${svcRisk}` : ''}</div>`;
 
-            document.getElementById('producer_impact').innerHTML = `<span class="font-bold">Producer (Write)</span><br>${producerMsg}`;
-            document.getElementById('consumer_impact').innerHTML = `<span class="font-bold">Consumer (Read)</span><br>${consumerMsg}`;
-            document.getElementById('service_impact').innerHTML = `<span class="font-bold">Connect/SR</span><br>${serviceMsg}`;
+            const producerElement = document.getElementById('producer_impact');
+            const consumerElement = document.getElementById('consumer_impact');
+            const serviceElement = document.getElementById('service_impact');
+            
+            console.log('Setting client impact elements:', {
+                producer: producerElement,
+                consumer: consumerElement,
+                service: serviceElement
+            });
+            
+            if (producerElement) {
+                producerElement.innerHTML = `<span class="font-bold">Producer (Write)</span><br>${producerMsg}`;
+            }
+            if (consumerElement) {
+                consumerElement.innerHTML = `<span class="font-bold">Consumer (Read)</span><br>${consumerMsg}`;
+            }
+            if (serviceElement) {
+                serviceElement.innerHTML = `<span class="font-bold">Connect/SR</span><br>${serviceMsg}`;
+            }
         }
 
 
@@ -1760,6 +2381,8 @@
                 else if (item.includes('Metadata Refresh')) colorClass = 'text-yellow-700 font-bold';
                 else if (item.startsWith('🛑') || item.includes('LOST') || item.includes('Offline')) colorClass = 'text-red-800 font-bold';
                 else if (item.startsWith('⚠️') || item.includes('Brief Stutter') || item.includes('Brief Delay')) colorClass = 'text-yellow-700 font-medium';
+                else if (item.includes('Leader Changed') || item.includes('New Leader') || item.includes('Election')) colorClass = 'text-orange-700 font-bold animate-pulse';
+                else if (item.includes('Force Election') || item.includes('Controller')) colorClass = 'text-indigo-700 font-bold';
                 
                 // Use a simple <li> for the main sequence items, remove bullet for summary items
                 return `<li class="${colorClass}">${item.replace('-', '')}</li>`;
@@ -1770,210 +2393,367 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // --- Dynamic Parameter Functions ---
-        
-        /**
-         * Updates Replication Factor and triggers scenario update
-         */
-        window.updateRF = function(value) {
-            RF_VALUE = parseInt(value);
-            document.getElementById('rf-value').textContent = value;
-            
-            // Constraint: Min ISR cannot exceed RF
-            const minISR = document.getElementById('minisr-slider').value;
-            if (parseInt(minISR) > parseInt(value)) {
-                document.getElementById('minisr-slider').value = value;
-                document.getElementById('minisr-value').textContent = value;
-                MIN_ISR = parseInt(value);
-                showWarning('minisr-warning');
-            }
-            
-            // Update preset buttons
-            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
-            if (value == 3) {
-                document.querySelector('button[onclick="setRF(3)"]').classList.add('active');
-            } else if (value == 6) {
-                document.querySelector('button[onclick="setRF(6)"]').classList.add('active');
-            }
-            
-            updateImpactMetrics();
-            updateScenario();
-        }
-        
-        /**
-         * Sets RF to specific value
-         */
-        window.setRF = function(value) {
-            document.getElementById('rf-slider').value = value;
-            updateRF(value);
-        }
-        
-        /**
-         * Updates Min ISR and triggers scenario update
-         */
-        window.updateMinISR = function(value) {
-            const rfValue = parseInt(document.getElementById('rf-slider').value);
-            if (parseInt(value) > rfValue) {
-                document.getElementById('minisr-warning').style.display = 'block';
-                return;
-            } else {
-                document.getElementById('minisr-warning').style.display = 'none';
-            }
-            
-            MIN_ISR = parseInt(value);
-            document.getElementById('minisr-value').textContent = value;
-            updateImpactMetrics();
-            updateScenario();
-        }
-        
-        /**
-         * Updates Client Acks and shows appropriate warnings
-         */
-        window.updateAcks = function(value) {
-            CLIENT_ACKS = value;
-            const riskIndicator = document.getElementById('acks-risk');
-            const customAcksDiv = document.getElementById('custom-acks');
-            
-            // Hide custom input by default
-            customAcksDiv.style.display = 'none';
-            
-            switch(value) {
-                case 'all':
-                    riskIndicator.innerHTML = `
-                        <span class="risk-level low">🟢 Low Risk</span>
-                        <span class="risk-description">All replicas must acknowledge. Relies on Min ISR for durability. Default and recommended setting.</span>
-                    `;
-                    riskIndicator.style.background = '#f0f9ff';
-                    riskIndicator.style.borderColor = '#0ea5e9';
-                    break;
-                    
-                case '1':
-                    riskIndicator.innerHTML = `
-                        <span class="risk-level medium">🟡 Medium Risk</span>
-                        <span class="risk-description">⚠️ WARNING: Only leader acknowledgment required. Data loss risk if leader fails before replication to followers.</span>
-                    `;
-                    riskIndicator.style.background = '#fef3c7';
-                    riskIndicator.style.borderColor = '#f59e0b';
-                    break;
-                    
-                case '0':
-                    riskIndicator.innerHTML = `
-                        <span class="risk-level high">🔴 High Risk</span>
-                        <span class="risk-description">⚠️ DANGER: No acknowledgment required. Maximum performance but high data loss risk. Use only for non-critical data.</span>
-                    `;
-                    riskIndicator.style.background = '#fef2f2';
-                    riskIndicator.style.borderColor = '#ef4444';
-                    break;
-                    
-                case 'custom':
-                    customAcksDiv.style.display = 'flex';
-                    riskIndicator.innerHTML = `
-                        <span class="risk-level medium">🟡 Custom Risk</span>
-                        <span class="risk-description">Custom acknowledgment level. Risk depends on the value you set.</span>
-                    `;
-                    riskIndicator.style.background = '#fef3c7';
-                    riskIndicator.style.borderColor = '#f59e0b';
-                    break;
-            }
-            
-            updateImpactMetrics();
-            updateScenario();
-        }
-        
-        /**
-         * Applies custom acks value
-         */
-        window.applyCustomAcks = function() {
-            const customValue = document.getElementById('custom-acks-value').value;
-            if (customValue && customValue >= 1 && customValue <= 6) {
-                CLIENT_ACKS = parseInt(customValue);
-                const riskIndicator = document.getElementById('acks-risk');
-                
-                if (customValue >= MIN_ISR) {
-                    riskIndicator.innerHTML = `
-                        <span class="risk-level low">🟢 Low Risk</span>
-                        <span class="risk-description">Custom acks=${customValue} ≥ Min ISR=${MIN_ISR}. Good durability guarantee.</span>
-                    `;
-                    riskIndicator.style.background = '#f0f9ff';
-                    riskIndicator.style.borderColor = '#0ea5e9';
-                } else {
-                    riskIndicator.innerHTML = `
-                        <span class="risk-level medium">🟡 Medium Risk</span>
-                        <span class="risk-description">⚠️ Custom acks=${customValue} < Min ISR=${MIN_ISR}. May not guarantee durability.</span>
-                    `;
-                    riskIndicator.style.background = '#fef3c7';
-                    riskIndicator.style.borderColor = '#f59e0b';
-                }
-                
-                updateImpactMetrics();
-                updateScenario();
-            }
-        }
-        
-        /**
-         * Updates impact metrics display
-         */
-        function updateImpactMetrics() {
-            const tolerance = RF_VALUE - MIN_ISR;
-            const toleranceText = tolerance > 0 ? `${tolerance} failures` : 'No tolerance';
-            
-            let latencyText = 'High';
-            let safetyText = 'High';
-            
-            // Calculate latency based on acks
-            if (CLIENT_ACKS === '0') {
-                latencyText = 'Low';
-                safetyText = 'Low';
-            } else if (CLIENT_ACKS === '1') {
-                latencyText = 'Medium';
-                safetyText = 'Medium';
-            } else if (CLIENT_ACKS === 'all' || (typeof CLIENT_ACKS === 'number' && CLIENT_ACKS >= MIN_ISR)) {
-                latencyText = 'High';
-                safetyText = 'High';
-            } else {
-                latencyText = 'Medium';
-                safetyText = 'Medium';
-            }
-            
-            document.getElementById('tolerance-value').textContent = toleranceText;
-            document.getElementById('latency-value').textContent = latencyText;
-            document.getElementById('safety-value').textContent = safetyText;
-        }
-        
-        /**
-         * Shows warning message
-         */
-        function showWarning(warningId) {
-            const warning = document.getElementById(warningId);
-            if (warning) {
-                warning.style.display = 'block';
-                setTimeout(() => {
-                    warning.style.display = 'none';
-                }, 3000);
-            }
-        }
-        
-        /**
-         * Updates scenario with new parameters
-         */
-        function updateScenario() {
-            // Update the display values
-            document.getElementById('display_min_isr').textContent = MIN_ISR;
-            document.getElementById('display_rf').textContent = RF_VALUE;
-            document.getElementById('display_tolerance').textContent = RF_VALUE - MIN_ISR;
-            
-            // Re-run simulation if there are any active scenarios
-            if (document.querySelector('.status-box-toggle.down-state')) {
-                setTimeout(runSimulation, 0);
-            }
-        }
 
         // Initialize UI on load
         window.onload = () => {
             buildCustomUI();
-            updateImpactMetrics(); // Initialize impact metrics
-            runScenario(5); // Start at the restored state
+            
+            // Initialize dynamic configuration
+            updateConfigImpact();
+            recalculatePartitionAssignments();
+            
+            // Force render client impact immediately
+            setTimeout(() => {
+                renderClientImpact();
+                
+                // Force render again after a delay to ensure it works
+                setTimeout(() => {
+                    renderClientImpact();
+                }, 500);
+            }, 100);
+            
+            // Initialize with proper scenario - wait for DOM to be fully ready
+            setTimeout(() => {
+                // Ensure all components are UP first
+                Object.keys(clusterState.brokers).forEach(id => {
+                    clusterState.brokers[id].status = 'UP';
+                });
+                Object.keys(clusterState.kraft_controllers).forEach(id => {
+                    clusterState.kraft_controllers[id].status = 'UP';
+                });
+                Object.keys(clusterState.services).forEach(id => {
+                    clusterState.services[id].status = 'UP';
+                });
+                
+                // Update UI to show UP state
+                document.querySelectorAll('.status-box-toggle').forEach(element => {
+                    element.classList.add('up-state');
+                    element.classList.remove('down-state');
+                    element.querySelector('.status-text').textContent = 'UP';
+                });
+                
+                // Now call runScenario(5)
+                runScenario(5);
+                
+                // Force render client impact after a delay to ensure DOM is ready
+                setTimeout(() => {
+                    // Check if elements exist before rendering
+                    const producerEl = document.getElementById('producer_impact');
+                    const consumerEl = document.getElementById('consumer_impact');
+                    const serviceEl = document.getElementById('service_impact');
+                    
+                    if (producerEl && consumerEl && serviceEl) {
+                        renderClientImpact();
+                        forceRenderClientImpact();
+                    } else {
+                        // Try again after a longer delay
+                        setTimeout(() => {
+                            renderClientImpact();
+                            forceRenderClientImpact();
+                        }, 1000);
+                    }
+                }, 500);
+            }, 200);
         };
+
+        /**
+         * Force render partition status and sequence log
+         */
+        function forceRenderResults() {
+            
+            // First, read the current state from UI controls
+            const currentState = readCustomState();
+            clusterState = JSON.parse(JSON.stringify(currentState));
+            clusterState.partitions = JSON.parse(JSON.stringify(initialState.partitions));
+            
+            // Execute failover logic to get proper results
+            const summary = getFailedComponentsSummary();
+            const failoverSteps = updateStateAfterFailover(summary);
+            
+            // Render partition status
+            const partitionContainer = document.getElementById('partition_status');
+            if (partitionContainer) {
+                partitionContainer.innerHTML = '';
+                
+                Object.keys(clusterState.partitions).forEach((pId, index) => {
+                    const partition = clusterState.partitions[pId];
+                    const leader = partition.leader;
+                    const followers = partition.followers;
+                    const allReplicas = [leader, ...followers];
+                    
+                    // Calculate actual ISR count based on current broker status
+                    let isrCount = 0;
+                    allReplicas.forEach(brokerId => {
+                        if (clusterState.brokers[brokerId] && clusterState.brokers[brokerId].status === 'UP') {
+                            isrCount++;
+                        }
+                    });
+                    
+                    // Check quorum status
+                    const { quorumMaintained } = checkQuorum();
+                    const bothIngressDown = 
+                        clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                        clusterState.services.DC2_INGRESS.status === 'DOWN';
+                    
+                    // Determine partition status
+                    let statusColor = 'bg-green-100';
+                    let statusText = 'text-green-800';
+                    let statusDesc = `Leader: ${leader} (${clusterState.brokers[leader].site}). ISR Count: ${isrCount} (Min.ISR: ${MIN_ISR})`;
+                    
+                    if (bothIngressDown) {
+                        statusColor = 'bg-red-100';
+                        statusText = 'text-red-800';
+                        statusDesc = `Quorum Lost - VIPs DOWN. Partition is **UNAVAILABLE** for clients.`;
+                    } else if (!quorumMaintained) {
+                        statusColor = 'bg-yellow-100';
+                        statusText = 'text-yellow-800';
+                        statusDesc = `Quorum Lost (${upControllers}/${QUORUM_REQUIRED}). Control plane unavailable - no new leader elections. Data plane still operational.`;
+                    } else if (isrCount < MIN_ISR) {
+                        statusColor = 'bg-red-100';
+                        statusText = 'text-red-800';
+                        statusDesc = `Leader Failed: ${leader}. ISR Count (${isrCount}) < Min.ISR (${MIN_ISR}). **OFFLINE**`;
+                    } else if (clusterState.brokers[leader].status === 'DOWN') {
+                        statusColor = 'bg-yellow-100';
+                        statusText = 'text-yellow-800';
+                        statusDesc = `Leader Changed! New Leader: ${leader} (${clusterState.brokers[leader].site}). ISR Count: ${isrCount}`;
+                    } else if (currentLeader !== initialLeader) {
+                        // Check if leader has changed from initial state
+                        statusColor = 'bg-yellow-100';
+                        statusText = 'text-yellow-800';
+                        statusDesc = `Leader Changed! New Leader: ${leader} (${clusterState.brokers[leader].site}). ISR Count: ${isrCount}`;
+                    }
+                    
+                    const card = `
+                        <div class="p-3 rounded-xl shadow-md border ${statusColor} border-gray-200 min-h-[100px]">
+                            <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
+                            <p class="text-xs font-semibold ${statusText}">${statusDesc}</p>
+                            <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=${RF_VALUE}${AOP_VALUE > 0 ? ` + AOP=${AOP_VALUE}` : ''}): ${allReplicas.join(', ')}</p>
+                        </div>
+                    `;
+                    partitionContainer.innerHTML += card;
+                });
+            }
+            
+            // Render sequence log with actual failover steps
+            const logContainer = document.getElementById('sequence_log');
+            if (logContainer) {
+                logContainer.innerHTML = failoverSteps.map(item => {
+                    let colorClass = 'text-gray-800';
+                    if (item.startsWith('--- 🛑')) colorClass = 'font-bold text-base text-red-700 mt-2';
+                    else if (item.startsWith('--- KRaft')) colorClass = 'font-bold text-base text-indigo-700 mt-2';
+                    else if (item.startsWith('--- CRITICAL')) colorClass = 'font-bold text-base text-red-700 mt-2';
+                    else if (item.startsWith('- ⚠️')) colorClass = 'text-yellow-600 italic ml-4';
+                    else if (item.startsWith('-')) colorClass = 'text-red-500 italic ml-4';
+                    else if (item.includes('failed') || item.includes('Fails')) colorClass = 'text-red-600';
+                    else if (item.includes('KRaft Sequence:')) colorClass = 'text-blue-600 italic';
+                    else if (item.startsWith('✅') || item.includes('MAINTAINED')) colorClass = 'text-green-700 font-medium';
+                    else if (item.includes('Metadata Refresh')) colorClass = 'text-yellow-700 font-bold';
+                    else if (item.startsWith('🛑') || item.includes('LOST') || item.includes('Offline')) colorClass = 'text-red-800 font-bold';
+                    else if (item.startsWith('⚠️') || item.includes('Brief Stutter') || item.includes('Brief Delay')) colorClass = 'text-yellow-700 font-medium';
+                    
+                    return `<li class="${colorClass}">${item.replace('-', '')}</li>`;
+                }).join('');
+            }
+            
+            // Also render cluster health and client impact
+            renderClusterHealth();
+            
+            // Force render client impact with error checking
+            setTimeout(() => {
+                const producerEl = document.getElementById('producer_impact');
+                const consumerEl = document.getElementById('consumer_impact');
+                const serviceEl = document.getElementById('service_impact');
+                
+                if (producerEl && consumerEl && serviceEl) {
+                    renderClientImpact();
+                    forceRenderClientImpact();
+                    
+                    // Force render again to ensure VIP logic works
+                    setTimeout(() => {
+                        renderClientImpact();
+                    }, 200);
+                }
+            }, 100);
+            
+            // Force render client impact if it's empty
+            setTimeout(() => {
+                const producerImpact = document.getElementById('producer_impact');
+                const consumerImpact = document.getElementById('consumer_impact');
+                const serviceImpact = document.getElementById('service_impact');
+                
+                if (!producerImpact.innerHTML || !consumerImpact.innerHTML || !serviceImpact.innerHTML) {
+                    console.log('Client impact is empty, forcing render...');
+                    forceRenderClientImpact();
+                }
+            }, 100);
+        }
+
+        /**
+         * Force render client impact directly
+         */
+        function forceRenderClientImpact() {
+            
+            const { quorumMaintained } = checkQuorum();
+            const minISR = MIN_ISR;
+            let partitionsOffline = 0;
+            let ingressDownCount = 0;
+            
+            // Get DOM elements
+            const producerEl = document.getElementById('producer_impact');
+            const consumerEl = document.getElementById('consumer_impact');
+            const serviceEl = document.getElementById('service_impact');
+
+            // Analyze partition availability
+            for (const [pId, pData] of Object.entries(clusterState.partitions)) {
+                const isrCount = getISRCount(pId);
+                const isAvailable = isrCount >= minISR;
+                
+                if (!isAvailable) {
+                    partitionsOffline++;
+                }
+            }
+            
+            if (clusterState.services.DC1_INGRESS.status === 'DOWN') ingressDownCount++;
+            if (clusterState.services.DC2_INGRESS.status === 'DOWN') ingressDownCount++;
+
+            // Build compact badges
+            const red = '<span class="inline-block w-2.5 h-2.5 rounded-sm bg-red-500 mr-2 align-middle"></span>';
+            const yellow = '<span class="inline-block w-2.5 h-2.5 rounded-sm bg-yellow-400 mr-2 align-middle"></span>';
+            const green = '<span class="inline-block w-2.5 h-2.5 rounded-sm bg-emerald-500 mr-2 align-middle"></span>';
+
+            const bothIngressDown =
+                clusterState.services.DC1_INGRESS.status === 'DOWN' &&
+                clusterState.services.DC2_INGRESS.status === 'DOWN';
+
+            // If all external VIPs are down, clients cannot connect to brokers at all
+            // VIP Ingress is the gateway to all OCP containerized services
+            if (bothIngressDown) {
+                const extMsg = `${red} <span class=\"font-medium\">OCP Gateway:</span> All Ingress VIPs are DOWN — OCP services unreachable`;
+                const producerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Writes unavailable (OCP gateway down)</div>`;
+                const consumerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Reads unavailable (OCP gateway down)</div>`;
+                const serviceMsg = `<div class=\"space-y-1\">${extMsg}<br>${yellow} <span class=\"font-medium\">Note:</span> Equivalent to site failure - VIP is entry point to all OCP services.</div>`;
+            } else if (!quorumMaintained) {
+                const controlMsg = `${yellow} <span class=\"font-medium\">Control Plane:</span> ❌ UNAVAILABLE (Metadata operations, Topic creation, ACL changes blocked)`;
+                
+                // Check if any partitions are offline (ISR count < Min.ISR)
+                let hasOfflinePartitions = false;
+                for (const [pId, pData] of Object.entries(initialState.partitions)) {
+                    const isrCount = getISRCount(pId);
+                    if (isrCount < MIN_ISR) {
+                        hasOfflinePartitions = true;
+                        break;
+                    }
+                }
+                
+                let dataMsg, producerMsg, consumerMsg, serviceMsg;
+                if (hasOfflinePartitions) {
+                    dataMsg = `${red} <span class=\"font-medium\">Data Plane:</span> ❌ UNAVAILABLE (ISR count < Min.ISR - Write operations blocked)`;
+                    producerMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${red} <span class=\"font-medium\">Impact:</span> Cannot create new topics, write operations unavailable</div>`;
+                    consumerMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${yellow} <span class=\"font-medium\">Impact:</span> Cannot create new topics, read operations may work from remaining replicas</div>`;
+                    serviceMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${red} <span class=\"font-medium\">Impact:</span> Connect tasks unavailable, no new tasks can be created</div>`;
+                } else {
+                    dataMsg = `${yellow} <span class=\"font-medium\">Data Plane:</span> ⚠️ DEGRADED (Read/Write operations limited due to leader failure)`;
+                    producerMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${yellow} <span class=\"font-medium\">Impact:</span> Cannot create new topics, limited write capability on existing topics</div>`;
+                    consumerMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${yellow} <span class=\"font-medium\">Impact:</span> Cannot create new topics, limited read capability on existing topics</div>`;
+                    serviceMsg = `<div class=\"space-y-1\">${controlMsg}<br>${dataMsg}<br>${yellow} <span class=\"font-medium\">Impact:</span> Existing Connect tasks may be affected, no new tasks can be created</div>`;
+                }
+
+                document.getElementById('producer_impact').innerHTML = `<span class=\"font-bold\">Producer (Write)</span><br>${producerMsg}`;
+                document.getElementById('consumer_impact').innerHTML = `<span class=\"font-bold\">Consumer (Read)</span><br>${consumerMsg}`;
+                document.getElementById('service_impact').innerHTML = `<span class=\"font-bold\">Connect/SR</span><br>${serviceMsg}`;
+                return;
+            }
+
+            // Producer
+            const prodMeta = !quorumMaintained
+                ? `${red} <span class="font-medium">Control plane:</span> Lost — metadata ops blocked (topic/ACL/partition)`
+                : `${green} <span class="font-medium">Control plane:</span> OK — metadata ops available`;
+
+            // Check available brokers and partition health
+            const availableBrokers = Object.values(clusterState.brokers).filter(b => b.status === 'UP').length;
+            const durabilityReduced = availableBrokers < RF_VALUE;
+            const criticalBrokerShortage = availableBrokers < MIN_ISR;
+            
+            let prodData;
+            if (criticalBrokerShortage) {
+                // Critical: If available brokers < Min.ISR, NO partition can maintain Min.ISR
+                prodData = `${red} <span class=\"font-medium\">Data plane:</span> <strong>ALL WRITES BLOCKED</strong> - Available brokers (${availableBrokers}) < Min.ISR (${MIN_ISR})`;
+            } else if (partitionsOffline > 0) {
+                // Some partitions have ISR < Min.ISR
+                prodData = `${red} <span class=\"font-medium\">Data plane:</span> Writes blocked on ${partitionsOffline} partition(s) (ISR < Min.ISR)`;
+            } else if (durabilityReduced) {
+                // Available brokers < RF but >= Min.ISR: writes still work but durability reduced
+                prodData = `${yellow} <span class=\"font-medium\">Data plane:</span> Writes OK but RF reduced (${availableBrokers}/${RF_VALUE} brokers) - some replicas out-of-sync`;
+            } else {
+                prodData = `${green} <span class=\"font-medium\">Data plane:</span> Writes OK on all partitions with full replication`;
+            }
+            const prodRisk = !quorumMaintained
+                ? `${yellow} <span class="font-medium">Risk:</span> If a leader fails while quorum is lost, writes stop until quorum restored`
+                : '';
+            const producerMsg = `<div class="space-y-1">${prodMeta}<br>${prodData}${prodRisk ? `<br>${prodRisk}` : ''}</div>`;
+
+            // Consumer
+            const consMeta = !quorumMaintained
+                ? `${red} <span class="font-medium">Control plane:</span> Lost — metadata refresh/admin blocked`
+                : `${green} <span class="font-medium">Control plane:</span> OK — metadata refresh available`;
+            let consData;
+            if (partitionsOffline > 0) {
+                consData = `${red} <span class=\"font-medium\">Data plane:</span> Reads stopped on ${partitionsOffline} partition(s) (ISR < Min.ISR)`;
+            } else {
+                consData = `${green} <span class=\"font-medium\">Data plane:</span> Reads OK from partitions with current leaders`;
+            }
+            const consRisk = !quorumMaintained
+                ? `${yellow} <span class="font-medium">Risk:</span> If any leader fails, reads stop until quorum restored`
+                : '';
+            const consumerMsg = `<div class="space-y-1">${consMeta}<br>${consData}${consRisk ? `<br>${consRisk}` : ''}</div>`;
+
+            // Connect / Schema Registry
+            const dc1ConnectDown = clusterState.services.DC1_CONNECT.status === 'DOWN';
+            const dc2ConnectDown = clusterState.services.DC2_CONNECT.status === 'DOWN';
+            const dc1SRDown = clusterState.services.DC1_SR.status === 'DOWN';
+            const dc2SRDown = clusterState.services.DC2_SR.status === 'DOWN';
+
+            const metaConnect = !quorumMaintained
+                ? `${red} <span class="font-medium">Metadata:</span> Registering new tasks/schemas blocked`
+                : `${green} <span class="font-medium">Metadata:</span> Registry/Connect admin available`;
+
+            // availability of existing tasks (approximate)
+            const dataConnect = `${green} <span class="font-medium">Data I/O:</span> Existing tasks continue if internal topics leaders remain up and ISR ≥ Min.ISR`;
+            const svcRisk = !quorumMaintained
+                ? `${yellow} <span class="font-medium">Advisory:</span> Freeze config/rollouts until quorum is restored`
+                : '';
+
+            const svcDowns = [];
+            if (dc1ConnectDown && dc2ConnectDown) svcDowns.push('Connect (both sites)');
+            else if (dc1ConnectDown) svcDowns.push('Connect DC1');
+            else if (dc2ConnectDown) svcDowns.push('Connect DC2');
+            if (dc1SRDown && dc2SRDown) svcDowns.push('Schema Registry (both sites)');
+            else if (dc1SRDown) svcDowns.push('Schema Registry DC1');
+            else if (dc2SRDown) svcDowns.push('Schema Registry DC2');
+            const svcDownNote = svcDowns.length > 0 ? `<br>${red} <span class=\"font-medium\">Outage:</span> ${svcDowns.join(', ')} down` : '';
+            const serviceMsg = `<div class="space-y-1">${metaConnect}<br>${dataConnect}${svcDownNote}${svcRisk ? `<br>${svcRisk}` : ''}</div>`;
+
+            if (producerEl) {
+                producerEl.innerHTML = `<span class="font-bold">Producer (Write)</span><br>${producerMsg}`;
+                console.log('Producer impact set:', producerMsg);
+            } else {
+                console.error('Producer impact element not found!');
+            }
+            
+            if (consumerEl) {
+                consumerEl.innerHTML = `<span class="font-bold">Consumer (Read)</span><br>${consumerMsg}`;
+                console.log('Consumer impact set:', consumerMsg);
+            } else {
+                console.error('Consumer impact element not found!');
+            }
+            
+            if (serviceEl) {
+                serviceEl.innerHTML = `<span class="font-bold">Connect/SR</span><br>${serviceMsg}`;
+                console.log('Service impact set:', serviceMsg);
+            } else {
+                console.error('Service impact element not found!');
+            }
+        }
     </script>
 </body>
 </html>
