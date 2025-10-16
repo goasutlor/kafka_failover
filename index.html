@@ -2377,8 +2377,10 @@
                 ? `${red} <span class="font-medium">Metadata:</span> Registering new tasks/schemas blocked`
                 : `${green} <span class="font-medium">Metadata:</span> Registry/Connect admin available`;
 
-            // availability of existing tasks (approximate)
-            const dataConnect = `${green} <span class="font-medium">Data I/O:</span> Existing tasks continue if internal topics leaders remain up and ISR ≥ Min.ISR`;
+            // availability of existing tasks (consider available brokers)
+            const dataConnect = totalAvailableBrokers === 0 
+                ? `${red} <span class="font-medium">Data I/O:</span> Existing tasks unavailable (no brokers accessible)`
+                : `${green} <span class="font-medium">Data I/O:</span> Existing tasks continue if internal topics leaders remain up and ISR ≥ Min.ISR`;
             const svcRisk = !quorumMaintained
                 ? `${yellow} <span class="font-medium">Advisory:</span> Freeze config/rollouts until quorum is restored`
                 : '';
@@ -2768,8 +2770,10 @@
                 ? `${red} <span class="font-medium">Metadata:</span> Registering new tasks/schemas blocked`
                 : `${green} <span class="font-medium">Metadata:</span> Registry/Connect admin available`;
 
-            // availability of existing tasks (approximate)
-            const dataConnect = `${green} <span class="font-medium">Data I/O:</span> Existing tasks continue if internal topics leaders remain up and ISR ≥ Min.ISR`;
+            // availability of existing tasks (consider available brokers)
+            const dataConnect = totalAvailableBrokers === 0 
+                ? `${red} <span class="font-medium">Data I/O:</span> Existing tasks unavailable (no brokers accessible)`
+                : `${green} <span class="font-medium">Data I/O:</span> Existing tasks continue if internal topics leaders remain up and ISR ≥ Min.ISR`;
             const svcRisk = !quorumMaintained
                 ? `${yellow} <span class="font-medium">Advisory:</span> Freeze config/rollouts until quorum is restored`
                 : '';
