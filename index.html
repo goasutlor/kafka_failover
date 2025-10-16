@@ -1122,30 +1122,7 @@
                 }
             }
             
-            // AOP Logic: If AOP is enabled, we can promote async replicas to ISR
-            if (AOP_VALUE > 0 && isrCount < MIN_ISR) {
-                // Calculate how many async replicas we can promote (considering VIP status)
-                let totalAvailableBrokers = 0;
-                for (const [brokerId, broker] of Object.entries(clusterState.brokers)) {
-                    if (broker.status === 'UP') {
-                        const brokerSite = broker.site;
-                        const isBrokerSiteDown = (brokerSite === 'DC1' && dc1IngressDown) || 
-                                               (brokerSite === 'DC2' && dc2IngressDown);
-                        if (!isBrokerSiteDown) {
-                            totalAvailableBrokers++;
-                        }
-                    }
-                }
-                
-                const maxPossibleISR = Math.min(RF_VALUE + AOP_VALUE, totalAvailableBrokers);
-                
-                // If we have enough brokers available, we can maintain the required ISR
-                if (maxPossibleISR >= MIN_ISR) {
-                    isrCount = Math.max(isrCount, MIN_ISR);
-                }
-            }
-            
-            // Critical Check: If total available brokers < Min.ISR, all partitions should be offline
+            // Calculate total available brokers in the cluster (for AOP logic)
             let totalAvailableBrokers = 0;
             for (const [brokerId, broker] of Object.entries(clusterState.brokers)) {
                 if (broker.status === 'UP') {
@@ -1158,11 +1135,43 @@
                 }
             }
             
+            // AOP Logic: If AOP is enabled, we can promote async replicas to ISR
+            if (AOP_VALUE > 0 && isrCount < MIN_ISR) {
+                const maxPossibleISR = Math.min(RF_VALUE + AOP_VALUE, totalAvailableBrokers);
+                
+                // If we have enough brokers available, we can maintain the required ISR
+                if (maxPossibleISR >= MIN_ISR) {
+                    isrCount = Math.max(isrCount, MIN_ISR);
+                }
+            }
+            
+            // Critical Check: If total available brokers < Min.ISR, all partitions should be offline
             if (totalAvailableBrokers < MIN_ISR) {
                 isrCount = Math.min(isrCount, totalAvailableBrokers);
             }
             
             return isrCount;
+        }
+
+        /**
+         * Get total available brokers considering VIP status
+         */
+        function getTotalAvailableBrokers() {
+            const dc1IngressDown = clusterState.services.DC1_INGRESS.status === 'DOWN';
+            const dc2IngressDown = clusterState.services.DC2_INGRESS.status === 'DOWN';
+            
+            let totalAvailableBrokers = 0;
+            for (const [brokerId, broker] of Object.entries(clusterState.brokers)) {
+                if (broker.status === 'UP') {
+                    const brokerSite = broker.site;
+                    const isBrokerSiteDown = (brokerSite === 'DC1' && dc1IngressDown) || 
+                                           (brokerSite === 'DC2' && dc2IngressDown);
+                    if (!isBrokerSiteDown) {
+                        totalAvailableBrokers++;
+                    }
+                }
+            }
+            return totalAvailableBrokers;
         }
 
         /**
@@ -1761,14 +1770,17 @@
                 clusterState.services.DC1_INGRESS.status === 'DOWN' &&
                 clusterState.services.DC2_INGRESS.status === 'DOWN';
 
-            // If all external VIPs are down, partitions are unreachable from outside
-            if (bothIngressDown) {
+            // Check total available brokers considering VIP status
+            const totalAvailableBrokers = getTotalAvailableBrokers();
+            
+            // If no brokers are available (all VIPs down or no brokers up), partitions are unreachable
+            if (totalAvailableBrokers === 0) {
                 for (const [pId] of Object.entries(clusterState.partitions)) {
                     const card = `
                         <div class="p-3 rounded-xl shadow-md border bg-red-50 border-gray-200 min-h-[100px]">
                             <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
-                            <p class="text-xs font-semibold text-red-800">OCP Gateway Down: All Ingress VIPs are DOWN. Partition is <strong>Unreachable/Offline</strong> for clients.</p>
-                            <p class="text-[10px] text-gray-600 mt-1">Note: Equivalent to site failure - VIP is entry point to all OCP containerized services.</p>
+                            <p class="text-xs font-semibold text-red-800">No Available Brokers: All Ingress VIPs DOWN or No Brokers UP. Partition is <strong>Unreachable/Offline</strong> for clients.</p>
+                            <p class="text-[10px] text-gray-600 mt-1">Note: Equivalent to complete cluster failure - no brokers accessible.</p>
                         </div>
                     `;
                     container.innerHTML += card;
@@ -2252,14 +2264,16 @@
                 bothIngressDown: bothIngressDown
             });
 
-            // If all external VIPs are down, clients cannot connect to brokers at all
-            // VIP Ingress is the gateway to all OCP containerized services
-            if (bothIngressDown) {
-                console.log('Both Ingress VIPs are DOWN - showing unavailable status');
-                const extMsg = `${red} <span class=\"font-medium\">OCP Gateway:</span> All Ingress VIPs are DOWN — OCP services unreachable`;
-                producerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Writes unavailable (OCP gateway down)</div>`;
-                consumerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Reads unavailable (OCP gateway down)</div>`;
-                serviceMsg = `<div class=\"space-y-1\">${extMsg}<br>${yellow} <span class=\"font-medium\">Note:</span> Equivalent to site failure - VIP is entry point to all OCP services.</div>`;
+            // Check total available brokers considering VIP status
+            const totalAvailableBrokers = getTotalAvailableBrokers();
+            
+            // If no brokers are available, all operations are blocked
+            if (totalAvailableBrokers === 0) {
+                console.log('No available brokers - showing unavailable status');
+                const extMsg = `${red} <span class=\"font-medium\">Cluster:</span> No available brokers — All operations blocked`;
+                producerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Writes unavailable (no brokers accessible)</div>`;
+                consumerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Reads unavailable (no brokers accessible)</div>`;
+                serviceMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Connect tasks unavailable (no brokers accessible)</div>`;
             } else if (!quorumMaintained) {
                 console.log('Quorum Lost but VIPs UP - showing degraded status');
                 const controlMsg = `${yellow} <span class=\"font-medium\">Control Plane:</span> ❌ UNAVAILABLE (Metadata operations, Topic creation, ACL changes blocked)`;
@@ -2660,13 +2674,15 @@
                 clusterState.services.DC1_INGRESS.status === 'DOWN' &&
                 clusterState.services.DC2_INGRESS.status === 'DOWN';
 
-            // If all external VIPs are down, clients cannot connect to brokers at all
-            // VIP Ingress is the gateway to all OCP containerized services
-            if (bothIngressDown) {
-                const extMsg = `${red} <span class=\"font-medium\">OCP Gateway:</span> All Ingress VIPs are DOWN — OCP services unreachable`;
-                const producerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Writes unavailable (OCP gateway down)</div>`;
-                const consumerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Reads unavailable (OCP gateway down)</div>`;
-                const serviceMsg = `<div class=\"space-y-1\">${extMsg}<br>${yellow} <span class=\"font-medium\">Note:</span> Equivalent to site failure - VIP is entry point to all OCP services.</div>`;
+            // Check total available brokers considering VIP status
+            const totalAvailableBrokers = getTotalAvailableBrokers();
+            
+            // If no brokers are available, all operations are blocked
+            if (totalAvailableBrokers === 0) {
+                const extMsg = `${red} <span class=\"font-medium\">Cluster:</span> No available brokers — All operations blocked`;
+                const producerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Writes unavailable (no brokers accessible)</div>`;
+                const consumerMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Reads unavailable (no brokers accessible)</div>`;
+                const serviceMsg = `<div class=\"space-y-1\">${extMsg}<br>${red} <span class=\"font-medium\">Data plane:</span> Connect tasks unavailable (no brokers accessible)</div>`;
             } else if (!quorumMaintained) {
                 const controlMsg = `${yellow} <span class=\"font-medium\">Control Plane:</span> ❌ UNAVAILABLE (Metadata operations, Topic creation, ACL changes blocked)`;
                 
