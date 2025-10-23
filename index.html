@@ -168,7 +168,25 @@
 
     <div class="max-w-full mx-auto rounded-3xl card p-8 sm:p-10 lg:p-12">
         <h1 class="text-3xl font-extrabold text-gray-900 mb-2 text-center tracking-tight">Confluent Kafka Multi-Region Failover Simulation</h1>
-        <p class="text-gray-500 mb-8 text-center text-sm leading-6">Architecture: Confluent Kafka Single Cluster on 2 separate OCP Sites (DC1/DC2) with External KRaft Quorum Controller (Site 3)</p>
+        <p class="text-gray-500 mb-4 text-center text-sm leading-6">Architecture: Confluent Kafka Single Cluster on 2 separate OCP Sites (DC1/DC2) with External KRaft Quorum Controller (Site 3)</p>
+        
+        <!-- Architecture Benefits Note -->
+        <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+            <div class="flex items-start">
+                <span class="text-2xl mr-3">📘</span>
+                <div class="flex-1">
+                    <h3 class="text-sm font-bold text-blue-900 mb-2">Stretched Cluster Architecture (Synchronous Replication)</h3>
+                    <div class="text-xs text-blue-800 space-y-1">
+                        <div><strong>✅ Zero RPO (Recovery Point Objective):</strong> No data loss during DC failure</div>
+                        <div><strong>✅ Low RTO (Recovery Time Objective):</strong> Automatic failover in seconds</div>
+                        <div><strong>✅ Synchronous Replication:</strong> All writes confirmed across DCs before returning to client</div>
+                        <div class="mt-2 pt-2 border-t border-blue-200">
+                            <strong>⚠️ Requirements:</strong> Low latency between DCs (&lt; 10ms) | High bandwidth network | External quorum controller (Site 3 tiebreaker)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- MAIN TWO-COLUMN CONTAINER -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
@@ -282,8 +300,14 @@
                         </div>
 
                         <!-- Site 3 Controls -->
-                        <div id="site3_controls" class="component-group-container border-t-4 border-gray-500 space-y-3">
-                            <h3 class="font-extrabold text-sm text-gray-700 border-b pb-1">Site 3 Components</h3>
+                        <div id="site3_controls" class="component-group-container border-t-4 border-purple-500 space-y-3 bg-purple-50">
+                            <h3 class="font-extrabold text-sm text-purple-700 border-b pb-1 flex items-center">
+                                <span class="mr-2">⚖️</span>
+                                Site 3 Components (External Tiebreaker)
+                            </h3>
+                            <div class="text-[10px] text-purple-700 bg-purple-100 p-2 rounded border border-purple-300">
+                                <strong>Critical Role:</strong> Prevents split-brain when DC1 or DC2 fails. Maintains 5/3 quorum for controller elections.
+                            </div>
                             
                             <!-- Site 3 Controllers -->
                             <div class="space-y-1">
@@ -650,13 +674,33 @@
         function updateRackAwarenessImpact() {
             const impactElement = document.getElementById('rack_awareness_impact');
             if (RACK_AWARENESS_ENABLED) {
+                const dc1Count = Math.ceil(RF_VALUE/2);
+                const dc2Count = Math.floor(RF_VALUE/2);
+                const isAsymmetric = dc1Count !== dc2Count;
+                
                 impactElement.innerHTML = `
                     <div class="text-sm text-blue-600 mt-1">
                         🏢 <strong>Balanced replica distribution</strong> across DC1/DC2 sites<br>
                         <span class="text-xs text-gray-600">
-                            • Alternating pattern per partition (P0: DC1=${Math.ceil(RF_VALUE/2)}/DC2=${Math.floor(RF_VALUE/2)}, P1: DC1=${Math.floor(RF_VALUE/2)}/DC2=${Math.ceil(RF_VALUE/2)})<br>
+                            • Alternating pattern per partition (P0: DC1=${dc1Count}/DC2=${dc2Count}, P1: DC1=${dc2Count}/DC2=${dc1Count})<br>
                             • Ensures equal risk distribution across both datacenters
                         </span>
+                        ${isAsymmetric ? `
+                        <div class="mt-2 p-2 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                            <div class="text-xs text-yellow-700">
+                                <strong>⚠️ Asymmetric Replica Placement (RF=${RF_VALUE}):</strong><br>
+                                • P0, P2: Have ${dc1Count} replicas in DC1, only ${dc2Count} in DC2 → Write unavailable if DC1 fails (Min.ISR=${MIN_ISR})<br>
+                                • P1: Has ${dc2Count} replicas in DC1, ${dc1Count} in DC2 → Can maintain Min.ISR<br>
+                                • <strong>💡 Best Practice:</strong> Use even RF (4, 6) for symmetric placement = all partitions survive DC failure
+                            </div>
+                        </div>
+                        ` : `
+                        <div class="mt-2 p-2 bg-green-50 border-l-4 border-green-400 rounded">
+                            <div class="text-xs text-green-700">
+                                ✅ <strong>Symmetric Replica Placement (RF=${RF_VALUE}):</strong> All partitions have equal replicas per DC → Consistent DC failure tolerance
+                            </div>
+                        </div>
+                        `}
                     </div>
                 `;
                 impactElement.className = 'text-sm mt-1';
@@ -726,11 +770,12 @@
                 
                 aopImpact.innerHTML = `
                     <div class="text-sm text-green-600 mt-1">
-                        ⚡ <strong>AOP Enabled:</strong> ${syncReplicas} sync + ${asyncReplicas} async replicas (Total: ${totalReplicas})<br>
+                        ⚡ <strong>Confluent AOP Enabled:</strong> ${syncReplicas} sync + ${asyncReplicas} async replicas (Total: ${totalReplicas})<br>
                         <span class="text-xs text-gray-600">
                             • Write operations wait for ${syncReplicas} replicas only<br>
-                            • ${asyncReplicas} replicas replicate asynchronously<br>
-                            • Better write performance with maintained durability
+                            • ${asyncReplicas} <strong>Observer replicas</strong> replicate asynchronously<br>
+                            • <strong>Auto-promotion:</strong> Observers can join ISR when site failure occurs<br>
+                            • 📘 Simulates <strong>Confluent Cloud Multi-Region Clusters (MRC)</strong> behavior
                         </span>
                     </div>
                 `;
@@ -816,7 +861,7 @@
                             <strong>Min.ISR = RF is NOT recommended for production!</strong><br>
                             • If ANY single replica falls out of sync → partition immediately goes OFFLINE<br>
                             • Zero fault tolerance - extremely fragile configuration<br>
-                            • <strong>Best Practice:</strong> Min.ISR ≤ (RF/2 + 1) for RF=${RF_VALUE} → Min.ISR = ${Math.ceil(RF_VALUE/2 + 1)} recommended
+                            • <strong>Best Practice for Stretched Cluster:</strong> Min.ISR = ⌈RF/2⌉ + 1 = ${Math.ceil(RF_VALUE/2) + 1} (allows 1 DC failure with availability)
                         </div>
                     </div>
                 `;
@@ -838,9 +883,20 @@
                 `;
                 minIsrImpact.className = 'text-sm mt-1';
             }
-            // Good configuration
+            // Good configuration - provide stretched cluster guidance
             else {
-                minIsrImpact.innerHTML = '';
+                const optimalMinISR = Math.ceil(RF_VALUE / 2) + 1;
+                const isOptimal = MIN_ISR === optimalMinISR;
+                
+                minIsrImpact.innerHTML = `
+                    <div class="mt-2 p-2 ${isOptimal ? 'bg-green-50 border-l-4 border-green-400' : 'bg-blue-50 border-l-4 border-blue-400'} rounded">
+                        <div class="text-xs ${isOptimal ? 'text-green-700' : 'text-blue-700'}">
+                            ${isOptimal ? '✅' : '💡'} <strong>${isOptimal ? 'Optimal for Stretched Cluster:' : 'Good configuration:'}</strong> Min.ISR = ${MIN_ISR}<br>
+                            ${!isOptimal ? `<span class="text-xs">💡 For RF=${RF_VALUE}, optimal Min.ISR = ${optimalMinISR} (⌈RF/2⌉ + 1) to survive 1 DC failure</span>` : '<span class="text-xs">Survives complete DC failure while maintaining write availability</span>'}
+                        </div>
+                    </div>
+                `;
+                minIsrImpact.className = 'text-sm mt-1';
             }
         }
 
@@ -1100,14 +1156,18 @@
         function getISRCount(partitionId) {
             const partition = clusterState.partitions[partitionId];
             const allReplicas = [partition.leader, ...partition.followers];
+            
+            // Remove duplicates if any
+            const uniqueReplicas = [...new Set(allReplicas)];
+            
             let isrCount = 0;
             
             // Check if VIP is down for any site - if so, brokers in that site cannot participate
             const dc1IngressDown = clusterState.services.DC1_INGRESS.status === 'DOWN';
             const dc2IngressDown = clusterState.services.DC2_INGRESS.status === 'DOWN';
             
-            // Count available replicas considering VIP status
-            for (const brokerId of allReplicas) {
+            // Count available replicas considering VIP status (use unique list)
+            for (const brokerId of uniqueReplicas) {
                 const broker = clusterState.brokers[brokerId];
                 if (broker && broker.status === 'UP') {
                     // Check if broker is in a site with down VIP
@@ -1135,11 +1195,13 @@
                 }
             }
             
-            // AOP Logic: If AOP is enabled, we can promote async replicas to ISR
+            // Confluent AOP Logic: Observer replicas can auto-promote to ISR during site failure
+            // This simulates Confluent Cloud Multi-Region Clusters (MRC) behavior where
+            // async observers in surviving regions automatically join ISR to maintain availability
             if (AOP_VALUE > 0 && isrCount < MIN_ISR) {
                 const maxPossibleISR = Math.min(RF_VALUE + AOP_VALUE, totalAvailableBrokers);
                 
-                // If we have enough brokers available, we can maintain the required ISR
+                // If we have enough observer replicas available, they auto-promote to ISR
                 if (maxPossibleISR >= MIN_ISR) {
                     isrCount = Math.max(isrCount, MIN_ISR);
                 }
@@ -1199,20 +1261,38 @@
 
         /**
          * Finds a healthy follower for a given partition that can be elected as the new leader.
+         * Confluent Multi-Region: Considers VIP/Ingress availability for each site.
          */
         function findNewLeader(partitionId) {
-            const partition = clusterState.partitions[partitionId]; // Use current followers list
-            const currentLeader = clusterState.partitions[partitionId].leader;
+            const partition = clusterState.partitions[partitionId];
+            const currentLeader = partition.leader;
             const allReplicas = [currentLeader, ...partition.followers];
             
-            // Prioritize a replica that is UP and not the current leader (must be ISR/UP to be considered)
+            // Check site availability via VIP/Ingress status
+            const dc1IngressDown = clusterState.services.DC1_INGRESS.status === 'DOWN';
+            const dc2IngressDown = clusterState.services.DC2_INGRESS.status === 'DOWN';
+            
+            const candidates = [];
+            
+            // Find all available replicas considering VIP status
             for (const brokerId of allReplicas) {
-                // Check if the broker is internally UP
-                if (brokerId !== currentLeader && clusterState.brokers[brokerId] && clusterState.brokers[brokerId].status === 'UP') {
-                    return brokerId;
+                if (brokerId === currentLeader) continue;
+                
+                const broker = clusterState.brokers[brokerId];
+                if (!broker || broker.status === 'DOWN') continue;
+                
+                // Critical: Check if broker site is reachable via VIP
+                const brokerSite = broker.site;
+                const isSiteDown = (brokerSite === 'DC1' && dc1IngressDown) || 
+                                  (brokerSite === 'DC2' && dc2IngressDown);
+                
+                if (!isSiteDown) {
+                    candidates.push(brokerId);
                 }
             }
-            return null; 
+            
+            // Return first available candidate (in production Confluent, sorted by lag/preference)
+            return candidates.length > 0 ? candidates[0] : null;
         }
         
         /**
@@ -1816,30 +1896,24 @@
                 // Check if a leader change occurred
                 const leaderChanged = currentLeader !== initialLeader;
 
-
+                // CRITICAL: Check ISR < Min.ISR FIRST - this takes precedence over everything
                 if (!isAvailable) {
-                    // --- PARTITION OFFLINE (RED) - ISR < Min.ISR ---
+                    // --- PARTITION OFFLINE FOR WRITES (RED) - ISR < Min.ISR ---
+                    // Writes are BLOCKED but Reads may still work from current leader
                     const failedLeaderText = initialLeaderIsInternallyDown ? `<span class="font-extrabold text-red-700">${initialLeader} (Failed)</span>` : initialLeader;
                     
-                    // According to Kafka logic: If ISR < Min.ISR, partition is OFFLINE regardless of leader availability
-                    if (quorumMaintained) {
-                        leaderText = `Leader Failed: ${failedLeaderText}. ISR Count (${isrCount}) < Min.ISR (${minISR}). **OFFLINE**`;
+                    if (leaderChanged) {
+                        // Leader changed but ISR still < Min.ISR → RED with warning
+                        leaderText = `❌ New Leader: <span class="font-extrabold">${currentLeader}</span> (${currentLeaderSite}). ISR: ${isrCount} < Min.ISR: ${minISR}<br>
+                            <span class="text-xs">⚠️ <strong>Writes BLOCKED</strong> (ISR too low) | ✓ Reads OK from current leader</span>`;
+                        leaderColorClass = 'text-red-800';
+                        leaderBgClass = 'bg-red-100 border-2 border-red-500';
+                    } else {
+                        // Leader didn't change and ISR < Min.ISR
+                        leaderText = `❌ Leader: ${failedLeaderText}. ISR: ${isrCount} < Min.ISR: ${minISR}<br>
+                            <span class="text-xs">⚠️ <strong>Writes BLOCKED</strong> (ISR too low) | ✓ Reads OK from current leader</span>`;
                         leaderColorClass = 'text-red-800';
                         leaderBgClass = 'bg-red-100';
-                    } else {
-                        // No quorum, cannot elect new leader - check if data is actually available
-                        if (isrCount === 0) {
-                            // No in-sync replicas at all - truly offline
-                            leaderText = `Leader Failed: ${failedLeaderText}. Control Plane LOST (no election possible). ISR Count (${isrCount}) < Min.ISR (${minISR}). **OFFLINE**`;
-                            leaderColorClass = 'text-red-800';
-                            leaderBgClass = 'bg-red-100';
-                    } else {
-                        // ISR < Min.ISR - partition should be offline regardless of control plane
-                        const aopText = AOP_VALUE > 0 ? ` (AOP=${AOP_VALUE} enabled)` : '';
-                        leaderText = `Leader Failed: ${failedLeaderText}. Control Plane LOST (no election possible). ISR Count (${isrCount}) < Min.ISR (${minISR})${aopText}. **OFFLINE**`;
-                        leaderColorClass = 'text-red-800';
-                        leaderBgClass = 'bg-red-100';
-                    }
                     }
                 
                 } else if (!quorumMaintained && initialLeaderIsInternallyDown && !leaderChanged) {
@@ -1902,7 +1976,43 @@
                     leaderBgClass = isStableLeader ? 'bg-green-100' : 'bg-green-100 border-2 border-green-300';
                 }
 
-                const allReplicas = clusterState.partitions[pId].leader + ', ' + clusterState.partitions[pId].followers.join(', ');
+                // Get replicas from initial state (replicas list never changes)
+                const initialPartition = initialState.partitions[pId];
+                const originalReplicas = [initialPartition.leader, ...initialPartition.followers];
+                
+                // Create unique replica list (avoid duplicates)
+                const uniqueReplicas = [...new Set(originalReplicas)];
+                const allReplicasStr = uniqueReplicas.join(', ');
+                
+                // Calculate ISR for display
+                const dc1IngressDown = clusterState.services.DC1_INGRESS.status === 'DOWN';
+                const dc2IngressDown = clusterState.services.DC2_INGRESS.status === 'DOWN';
+                
+                const availableReplicas = uniqueReplicas.filter(brokerId => {
+                    const broker = clusterState.brokers[brokerId];
+                    if (!broker || broker.status === 'DOWN') return false;
+                    
+                    const brokerSite = broker.site;
+                    const isBrokerSiteDown = (brokerSite === 'DC1' && dc1IngressDown) || 
+                                           (brokerSite === 'DC2' && dc2IngressDown);
+                    return !isBrokerSiteDown;
+                });
+                
+                const isrCountDisplay = availableReplicas.length;
+                
+                // Determine ISR Status (Confluent Metrics Style)
+                let isrStatusText = '';
+                let isrStatusClass = '';
+                if (isrCountDisplay === RF_VALUE) {
+                    isrStatusText = 'Fully Replicated';
+                    isrStatusClass = 'text-green-600 font-semibold';
+                } else if (isrCountDisplay >= minISR) {
+                    isrStatusText = 'Under-Replicated (OK)';
+                    isrStatusClass = 'text-yellow-600 font-semibold';
+                } else {
+                    isrStatusText = 'Under-Replicated (CRITICAL)';
+                    isrStatusClass = 'text-red-600 font-extrabold';
+                }
 
                 // Add animation class for leader changes
                 const animationClass = leaderChanged ? 'leader-change-animation' : '';
@@ -1912,7 +2022,8 @@
                     <div class="p-3 rounded-xl shadow-md border ${leaderBgClass} border-gray-200 min-h-[100px] ${animationClass} ${changeIndicatorClass}">
                         <h4 class="font-extrabold text-sm mb-1 text-gray-800">${pId}</h4>
                         <p class="text-xs font-semibold ${leaderColorClass}">${leaderText}</p>
-                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=${RF_VALUE}${AOP_VALUE > 0 ? ` + AOP=${AOP_VALUE}` : ''}): ${allReplicas}</p>
+                        <p class="text-[10px] text-gray-600 mt-1">Replicas (RF=${RF_VALUE}${AOP_VALUE > 0 ? ` + AOP=${AOP_VALUE}` : ''}): ${allReplicasStr}</p>
+                        <p class="text-[10px] text-gray-600">ISR: ${isrCountDisplay}/${RF_VALUE} [${availableReplicas.join(', ')}] <span class="${isrStatusClass}">• ${isrStatusText}</span></p>
                         ${leaderChanged ? '<div class="mt-2 text-[10px] text-orange-600 font-semibold">⚠️ Leader Election Completed</div>' : ''}
                     </div>
                 `;
@@ -2037,22 +2148,42 @@
                         } else {
                             // No available ISR found. Check ULE condition.
                             if (uncleanEnabled) {
-                                // ULE enabled. Select the remaining broker (any UP replica)
-                                const remainingBrokers = Object.keys(clusterState.brokers).filter(b => b !== initialLeader && clusterState.brokers[b].status === 'UP');
-                                if (remainingBrokers.length > 0) {
-                                    // Pick the first remaining UP broker (Unclean Leader)
-                                    const uncleanLeader = remainingBrokers[0]; 
+                                // ULE enabled. CRITICAL: Can only elect from replicas of THIS partition
+                                const partition = clusterState.partitions[pId];
+                                const allReplicas = [partition.leader, ...partition.followers];
+                                
+                                // Check VIP status for each site
+                                const dc1IngressDown = clusterState.services.DC1_INGRESS.status === 'DOWN';
+                                const dc2IngressDown = clusterState.services.DC2_INGRESS.status === 'DOWN';
+                                
+                                // Find unclean candidates from replicas only (not in ISR)
+                                const uncleanCandidates = allReplicas.filter(brokerId => {
+                                    if (brokerId === initialLeader) return false;
+                                    
+                                    const broker = clusterState.brokers[brokerId];
+                                    if (!broker || broker.status === 'DOWN') return false;
+                                    
+                                    // Check if broker site is reachable
+                                    const brokerSite = broker.site;
+                                    const isSiteDown = (brokerSite === 'DC1' && dc1IngressDown) || 
+                                                      (brokerSite === 'DC2' && dc2IngressDown);
+                                    return !isSiteDown;
+                                });
+                                
+                                if (uncleanCandidates.length > 0) {
+                                    // Pick the first remaining replica as Unclean Leader
+                                    const uncleanLeader = uncleanCandidates[0]; 
                                     clusterState.partitions[pId].leader = uncleanLeader;
                                     clusterState.partitions[pId].uleUsed = true; // Mark ULE was used
                                     const newISRCount = getISRCount(pId);
                                     
-                                    newSequence.push(`2. KRaft Sequence: No ISR found. ULE is ON. Electing ${uncleanLeader} as Unclean Leader.`);
+                                    newSequence.push(`2. KRaft Sequence: No ISR found. ULE is ON. Electing ${uncleanLeader} (replica of ${pId}) as Unclean Leader.`);
                                     newSequence.push(`3. Result: Partition is **Available** (${newISRCount}/${minISR}) but **RISKS DATA LOSS** (Unclean Election).`);
                                     newSequence.push(`4. Kafka Clients: Metadata Refresh and redirect to the Unclean Leader.`);
                                 } else {
-                                    // ULE enabled but NO broker left.
+                                    // ULE enabled but NO replica available.
                                     clusterState.partitions[pId].uleUsed = false;
-                                    newSequence.push(`2. KRaft Sequence: ULE failed. No remaining broker found.`);
+                                    newSequence.push(`2. KRaft Sequence: ULE failed. No available replica found for ${pId}.`);
                                     newSequence.push(`3. Result: Partition ${pId} remains **Offline**.`);
                                     newSequence.push(`4. Kafka Clients: Producer/Consumer receive **NotEnoughReplicas** error.`);
                                 }
@@ -2329,10 +2460,25 @@
                 ? `${red} <span class="font-medium">Control plane:</span> Lost — metadata ops blocked (topic/ACL/partition)`
                 : `${green} <span class="font-medium">Control plane:</span> OK — metadata ops available`;
 
-            // Check available brokers and partition health
-            const availableBrokers = Object.values(clusterState.brokers).filter(b => b.status === 'UP').length;
-            const durabilityReduced = availableBrokers < RF_VALUE;
+            // Check available brokers considering VIP status
+            const availableBrokers = getTotalAvailableBrokers();
             const criticalBrokerShortage = availableBrokers < MIN_ISR;
+            
+            // Check if all partitions have full replication (ISR = RF)
+            let partitionsDegraded = 0;
+            let partitionsFullyReplicated = 0;
+            const totalPartitions = Object.keys(clusterState.partitions).length;
+            
+            for (const [pId] of Object.entries(clusterState.partitions)) {
+                const isrCount = getISRCount(pId);
+                if (isrCount === RF_VALUE) {
+                    partitionsFullyReplicated++;
+                } else if (isrCount >= MIN_ISR) {
+                    partitionsDegraded++;
+                }
+            }
+            
+            const durabilityReduced = partitionsDegraded > 0;
             
             let prodData;
             if (criticalBrokerShortage) {
@@ -2342,8 +2488,8 @@
                 // Some partitions have ISR < Min.ISR
                 prodData = `${red} <span class=\"font-medium\">Data plane:</span> Writes blocked on ${partitionsOffline} partition(s) (ISR < Min.ISR)`;
             } else if (durabilityReduced) {
-                // Available brokers < RF but >= Min.ISR: writes still work but durability reduced
-                prodData = `${yellow} <span class=\"font-medium\">Data plane:</span> Writes OK but RF reduced (${availableBrokers}/${RF_VALUE} brokers) - some replicas out-of-sync`;
+                // Some partitions have ISR < RF but >= Min.ISR: writes still work but durability reduced
+                prodData = `${yellow} <span class=\"font-medium\">Data plane:</span> Writes OK but ${partitionsDegraded}/${totalPartitions} partition(s) under-replicated (ISR < RF)`;
             } else {
                 prodData = `${green} <span class=\"font-medium\">Data plane:</span> Writes OK on all partitions with full replication`;
             }
@@ -2358,7 +2504,8 @@
                 : `${green} <span class="font-medium">Control plane:</span> OK — metadata refresh available`;
             let consData;
             if (partitionsOffline > 0) {
-                consData = `${red} <span class=\"font-medium\">Data plane:</span> Reads stopped on ${partitionsOffline} partition(s) (ISR < Min.ISR)`;
+                // Even if writes are blocked (ISR < Min.ISR), reads can still work from current leader
+                consData = `${yellow} <span class=\"font-medium\">Data plane:</span> Reads OK from current leaders (${partitionsOffline} partition(s) have ISR < Min.ISR but readable)`;
             } else {
                 consData = `${green} <span class=\"font-medium\">Data plane:</span> Reads OK from partitions with current leaders`;
             }
